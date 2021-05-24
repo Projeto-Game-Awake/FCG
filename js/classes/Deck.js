@@ -1,31 +1,18 @@
-var CardSide = {Light:0, Dark:1};
+var CardSide = ["lights","shadows"];
 class Deck {
-    constructor(x,y,type=CardSide.Light){
-        this.sprite = scene.add.sprite(x,y,"deck",type);
-        if(type==CardSide.Light) {
-            this.cards = [
-                new Card(0),
-                new Card(0),
-                new Card(0),
-                new Card(1),
-                new Card(1),
-                new Card(1),
-                new Card(2),
-                new Card(2),
-                new Card(2),
-            ]
-        } else {
-            this.cards = [
-                new Card(3),
-                new Card(3),
-                new Card(3),
-                new Card(4),
-                new Card(4),
-                new Card(4),
-                new Card(5),
-                new Card(5),
-                new Card(5),
-            ]
-        }
+    constructor(x,y,side=0,type=0){
+        this.sprite = scene.add.sprite(x,y,"decks",type);
+        this.side=side;
+        this.cards = [
+            new Card(0),
+            new Card(0),
+            new Card(0),
+            new Card(1),
+            new Card(1),
+            new Card(1),
+            new Card(2),
+            new Card(2),
+            new Card(2),
+        ]
     }
 }
