@@ -5,7 +5,8 @@ class board extends Phaser.Scene {
     this.Fields = [];
     this.Player1 = null;
     this.Player2 = null;
-    this.battle = new Battle();
+    this.Battle = new Battle();
+    this.currentDepth = 0;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -28,8 +29,8 @@ class board extends Phaser.Scene {
   create() {
     scene = this;
 
-    this.Player1 = new Player(60, 60, 1, scene, this.battle);
-    this.Player2 = new Player(420, 420, 0, scene, this.battle, true);
+    this.Player1 = new Player(60, 60, 1, scene);
+    this.Player2 = new Player(420, 420, 0, scene, true);
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
@@ -62,7 +63,27 @@ class board extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.getPlayerTurn().hasPlayed) {
+    let playerTurn = this.getPlayerTurn();
+    if (playerTurn.hasPlayed) {
+      let cardUsed = playerTurn.cardUsed;
+
+      let cardAnimation = new CardAnimations();
+      let battle = this.Battle;
+
+      cardUsed.depth = this.currentDepth++;
+      let timeLine = this.tweens.createTimeline();
+      timeLine.add(
+        cardAnimation.goto(
+          cardUsed,
+          battle.battlePosition.x,
+          battle.battlePosition.y,
+          function () {
+            battle.addPlayerCard(cardUsed.info);
+          }
+        )
+      );
+      timeLine.play();
+
       this.swithPlayer();
     }
   }

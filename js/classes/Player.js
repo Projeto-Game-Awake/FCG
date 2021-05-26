@@ -1,11 +1,10 @@
 class Player {
-  constructor(x, y, side = 0, instance, battle, isTurn = false) {
+  constructor(x, y, side = 0, instance, isTurn = false) {
     this.x = x;
     this.y = y;
     this.startX = 200;
     this.hand = null;
     this.instance = instance;
-    this.battle = battle;
     this.hasPlayed = false;
     this.isAtTurn = isTurn;
 
@@ -21,11 +20,6 @@ class Player {
     start += step;
     this.exile = new Deck(x, start, side, 2);
     this.suffleCard();
-
-    this.battlePosition = {
-      x: 4 * 60,
-      y: 4 * 60,
-    };
   }
 
   suffleCard() {
@@ -49,6 +43,11 @@ class Player {
     return selectedCards;
   }
 
+  useCard(card) {
+    this.cardUsed = card;
+    this.hasPlayed = true;
+  }
+
   drawCard(card) {
     let cardDisplay = scene.add.sprite(
       this.startX,
@@ -57,7 +56,7 @@ class Player {
       card.type
     );
     this.startX += card.width;
-    card.image = cardDisplay;
+    cardDisplay.info = card;
 
     cardDisplay.setInteractive();
 
@@ -68,34 +67,13 @@ class Player {
     cardDisplay.on("pointerout", function (pointer) {
       this.clearTint();
     });
-
-    let battlePosition = this.battlePosition;
-    let instance = this.instance;
-    let battle = this.battle;
-
     cardDisplay.player = this;
 
     cardDisplay.on("pointerup", function (pointer) {
-      if (!this.player.isAtTurn) return;
-
+      if (this.player.isAtTurn) {
+        this.player.useCard(this);
+      }
       this.clearTint();
-      let cardAnimation = new CardAnimations();
-      console.log("Position" + battlePosition.x);
-      console.log(instance);
-      this.player.hasPlayed = true;
-
-      let timeLine = instance.tweens.createTimeline();
-      timeLine.add(
-        cardAnimation.goto(
-          card.image,
-          battlePosition.x,
-          battlePosition.y,
-          function () {
-            battle.addPlayerCard(card);
-          }
-        )
-      );
-      timeLine.play();
     });
   }
 }
