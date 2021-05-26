@@ -1,6 +1,18 @@
 class Battle {
   constructor() {
     this.cards = [];
+
+    //Garantir que exista uma batalha só
+    if (this.constructor.instance) {
+      return this.constructor.instance;
+    }
+
+    this.constructor.instance = this;
+
+    this.battlePosition = {
+      x: 4 * 60,
+      y: 4 * 60,
+    };
   }
 
   addPlayerCard(card) {
@@ -22,10 +34,6 @@ class Battle {
       this.cards = [];
     }
 
-    console.log("A", dammagedPlayer, attackerPlayer);
-
     dammagedPlayer.stats.hp -= attackerPlayer.stats.attack;
-
-    console.log(dammagedPlayer);
   }
 }
