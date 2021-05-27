@@ -28,7 +28,8 @@ class Player {
     if (x > 60) {
       step *= -1;
     }
-    this.deck = new Deck(x, y, side);
+    start += step;
+    this.deck = new Deck(x, start, side);
     if(isMain) {
       this.deck.sprite.setInteractive();
       this.deck.sprite.on("pointerdown", this.doDrawCard, this);
@@ -65,8 +66,11 @@ class Player {
     this.arrangePlayerHand(card);
   }
   doDrawCard() {
-    this.hand.push(this.popDeck()[0]);
-    this.arrangePlayerHand(null);
+    if(this.board.phase == board.Phase.draw) {
+      this.hand.push(this.popDeck()[0]);
+      this.arrangePlayerHand(null);
+      this.board.phase = board.Phase.pre;
+    }
   }
   drawCard(card) {
     card.sprite = scene.add.sprite(
@@ -90,7 +94,9 @@ class Player {
     let player = this;
 
     cardDisplay.on("pointerup", function (pointer) {
-      if (player.isAtTurn) {
+      if (player.isAtTurn && 
+         (player.board.phase == board.Phase.pre || 
+          player.board.phase == board.Phase.pos)) {
         player.useCard(card);
       }
       this.clearTint();
@@ -127,7 +133,7 @@ class Player {
         x - moveLeft,
         this.handRow * 60,
         function () {
-          //battle.addPlayerCard(cardUsed.info);
+          
         }
       )
     );
@@ -136,12 +142,5 @@ class Player {
   calcDamage(card) {
     this.hp -= card.stats.attack;
     this.bar.setText(this.hp);
-    if(this.hp <= 0) {
-      if(card.side == 0) {
-        alert("A Luz prevaleceu!");
-      } else {
-        alert("As Sombras prevaleceram!");
-      }
-    }
   }
 }

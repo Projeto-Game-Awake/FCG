@@ -1,4 +1,11 @@
 class board extends Phaser.Scene {
+  static Phase = {
+    draw:0,
+    pre:1,
+    battle:2,
+    pos:3,
+    end:4
+  }
   constructor() {
     super("FCG-board");
 
@@ -7,6 +14,7 @@ class board extends Phaser.Scene {
     this.currentDepth = 0;
     this.Player1 = null;
     this.Player2 = null;
+    this.phase = board.Phase.draw;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -62,6 +70,7 @@ class board extends Phaser.Scene {
   }
   doNPCTurn() {
     this.Player2.doDrawCard();
+    //this.Player2.setCard();
   }
   getPlayerTurn() {
     if (this.Player1.isAtTurn) return this.Player1;
@@ -70,13 +79,12 @@ class board extends Phaser.Scene {
   update(time, delta) {
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
+      playerTurn.hasPlayed = false;
+      this.phase = board.Phase.battle;
       let cardUsed = playerTurn.cardUsed;
       playerTurn.table.push(cardUsed);
-
       cardUsed.depth = this.currentDepth++;
       this.arrangePlayerTable(playerTurn, cardUsed);
-
-      this.swithPlayer();
     }
   }
   arrangePlayerTable(player, cardUsed = null) {
@@ -99,6 +107,7 @@ class board extends Phaser.Scene {
       );
       moveLeft -= 60
     }
+    let board = this;
     timeLine.add(
       cardAnimation.goto(
         player.table[card].sprite,
@@ -106,6 +115,7 @@ class board extends Phaser.Scene {
         player.row * 60,
         cardUsed == null ? null : function () {
           battle.addPlayerCard(player,cardUsed);
+          board.swithPlayer();
         }
       )
     );

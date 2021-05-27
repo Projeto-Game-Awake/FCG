@@ -17,8 +17,12 @@ class Battle {
 
   addPlayerCard(player,card) {
     this.cards.push(card);
+
     if (player.board.currentDepth > 1) {
       this.round(player.board);
+    }
+    if(player.board.phase != board.Phase.end) {
+      player.board.phase = board.Phase.draw;
     }
   }
 
@@ -28,14 +32,18 @@ class Battle {
     let minor = Math.min(total1,total2);
     let firstPlayer = board.Player1;
     let secondPlayer = board.Player2;
+    let msg = "";
     // Ataca diretamente o líder
     if(total1 != total2) {
       let maxBattle = Math.max(total1,total2);
       if(total1 < total2) {
-        this.directAttack(board.Player1, board.Player2,minor,maxBattle);
+        msg = this.directAttack(board.Player1, board.Player2,minor,maxBattle);
       } else {
-        this.directAttack(board.Player2, board.Player1,minor,maxBattle);
+        msg = this.directAttack(board.Player2, board.Player1,minor,maxBattle);
       }
+    }
+    if(msg != "") {
+      alert(msg);
     }
     for(let i=0;i<minor;i++) {
       if (firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed) {
@@ -52,7 +60,7 @@ class Battle {
       }
       if(second.stats.hp <= 0) {
         this.retireCard(secondPlayer,second);
-      } else {
+      } else if (first.stats.speed != second.stats.speed) {
         first.stats.hp -= second.stats.attack;
       }
       if(first.stats.hp <= 0) {
@@ -72,5 +80,15 @@ class Battle {
     for(let i=minor;i<maxBattle;i++) {
       playerReciver.calcDamage(playerDealer.table[i]);
     }
+    let msg = "";
+    if(playerReciver.hp <= 0) {
+      if(playerDealer.table[0].side == 0) {
+        msg = "A Luz prevaleceu!";
+      } else {
+        msg = "As Sombras prevaleceram!";
+      }
+      playerDealer.board.phase = board.Phase.end;
+    }
+    return msg;
   }
 }
