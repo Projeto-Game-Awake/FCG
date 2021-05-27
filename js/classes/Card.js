@@ -1,8 +1,10 @@
 class Card {
   constructor(type, side) {
+    this.sprite = null;
     this.type = type;
-    this.width = 40;
-    this.height = 20;
+    this.width = 60;
+    this.height = 60;
+    this.side = side;
     this.stats = getCardStatsByTypeAndSide(type, side);
   }
 }

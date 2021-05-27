@@ -12,20 +12,20 @@ function getLightCardTypes(type) {
     {
       name: "henrique",
       attack: 1,
-      hp: 1,
-      speed: 2,
+      hp: 2,
+      speed: 3,
     },
     {
       name: "joana",
-      attack: 1,
+      attack: 2,
       hp: 1,
-      speed: 2,
+      speed: 4,
     },
     {
       name: "felipe",
       attack: 1,
       hp: 1,
-      speed: 2,
+      speed: 5,
     },
   ];
 
@@ -37,20 +37,20 @@ function getShadowCardTypes(type) {
     {
       name: "duarte",
       attack: 1,
-      hp: 1,
-      speed: 2,
+      hp: 2,
+      speed: 3,
     },
     {
       name: "freitas",
-      attack: 1,
+      attack: 2,
       hp: 1,
-      speed: 2,
+      speed: 4,
     },
     {
       name: "silva",
       attack: 1,
       hp: 1,
-      speed: 2,
+      speed: 5,
     },
   ];
 

@@ -8,4 +8,4 @@ var gameConfig = {
     },
     scene: [board]
 }
-jogo = new Phaser.Game(gameConfig);
+var game = new Phaser.Game(gameConfig);

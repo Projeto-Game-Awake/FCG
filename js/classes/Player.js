@@ -1,12 +1,26 @@
 class Player {
-  constructor(x, y, side = 0, instance, isTurn = false) {
+  constructor(board,x, y, side = 0, instance, isMain = false) {
+    this.board = board;
     this.x = x;
     this.y = y;
-    this.startX = 200;
-    this.hand = null;
+
+    this.hp = 5;
+    this.startX = 180;
+    if(x == 60){
+      this.handRow = 1;
+      this.row = 3;
+      this.bar = instance.add.text(420,60,this.hp, { font: '24px Courier', fill: '#00ff00' });
+    } else {
+      this.handRow = 7;
+      this.row = 5;
+      this.bar = instance.add.text(60,420,this.hp, { font: '24px Courier', fill: '#00ff00' });
+    }
+    this.hand = [];
+    this.table = [];
     this.instance = instance;
     this.hasPlayed = false;
-    this.isAtTurn = isTurn;
+    this.isAtTurn = isMain;
+    this.isMain = isMain;
 
     let start = y;
     let step = 60;
@@ -15,6 +29,10 @@ class Player {
       step *= -1;
     }
     this.deck = new Deck(x, y, side);
+    if(isMain) {
+      this.deck.sprite.setInteractive();
+      this.deck.sprite.on("pointerdown", this.doDrawCard, this);
+    }
     start += step;
     this.retire = new Deck(x, start, side, 1);
     start += step;
@@ -31,7 +49,6 @@ class Player {
         1
       )[0];
     }
-    console.log(newOrder);
     this.deck.cards = newOrder;
   }
   popDeck(times = 1) {
@@ -42,22 +59,24 @@ class Player {
     this.deck.cards.splice(0, times);
     return selectedCards;
   }
-
   useCard(card) {
     this.cardUsed = card;
     this.hasPlayed = true;
+    this.arrangePlayerHand(card);
   }
-
+  doDrawCard() {
+    this.hand.push(this.popDeck()[0]);
+    this.arrangePlayerHand(null);
+  }
   drawCard(card) {
-    let cardDisplay = scene.add.sprite(
+    card.sprite = scene.add.sprite(
       this.startX,
       this.y,
       CardSide[this.deck.side],
       card.type
     );
-    this.startX += card.width;
-    cardDisplay.info = card;
 
+    let cardDisplay = card.sprite;
     cardDisplay.setInteractive();
 
     cardDisplay.on("pointerdown", function (pointer) {
@@ -67,13 +86,62 @@ class Player {
     cardDisplay.on("pointerout", function (pointer) {
       this.clearTint();
     });
-    cardDisplay.player = this;
+
+    let player = this;
 
     cardDisplay.on("pointerup", function (pointer) {
-      if (this.player.isAtTurn) {
-        this.player.useCard(this);
+      if (player.isAtTurn) {
+        player.useCard(card);
       }
       this.clearTint();
     });
+  }
+  arrangePlayerHand(removedCard) {
+    if(removedCard != null) {
+      this.hand.splice(this.hand.indexOf(removedCard),1);
+    }
+
+    if(this.hand.length == 0) {
+      return;
+    }
+
+    let x = 240;
+    let cardAnimation = new CardAnimations();
+
+    let timeLine = scene.tweens.createTimeline();
+    let moveLeft = (this.hand.length - 1) * 30;
+    let card = 0;
+    for(;card < this.hand.length-1;card++) {
+      timeLine.add(
+        cardAnimation.goto(
+          this.hand[card].sprite,
+          x - moveLeft,
+          this.handRow * 60
+        )
+      );
+      moveLeft -= 60
+    }
+    timeLine.add(
+      cardAnimation.goto(
+        this.hand[card].sprite,
+        x - moveLeft,
+        this.handRow * 60,
+        function () {
+          //battle.addPlayerCard(cardUsed.info);
+        }
+      )
+    );
+    timeLine.play();
+  }
+  calcDamage(card) {
+    this.hp -= card.stats.attack;
+    this.bar.setText(this.hp);
+    if(this.hp <= 0) {
+      if(card.side == 0) {
+        alert("A Luz prevaleceu!");
+      } else {
+        alert("As Sombras prevaleceram!");
+      }
+    }
   }
 }

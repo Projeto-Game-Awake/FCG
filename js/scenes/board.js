@@ -3,10 +3,10 @@ class board extends Phaser.Scene {
     super("FCG-board");
 
     this.Fields = [];
-    this.Player1 = null;
-    this.Player2 = null;
     this.Battle = new Battle();
     this.currentDepth = 0;
+    this.Player1 = null;
+    this.Player2 = null;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -29,8 +29,8 @@ class board extends Phaser.Scene {
   create() {
     scene = this;
 
-    this.Player1 = new Player(60, 60, 1, scene);
-    this.Player2 = new Player(420, 420, 0, scene, true);
+    this.Player1 = new Player(this,420, 420, 0, scene, true);
+    this.Player2 = new Player(this,60, 60, 1, scene);
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
@@ -55,40 +55,64 @@ class board extends Phaser.Scene {
 
     this.Player1.hasPlayed = false;
     this.Player2.hasPlayed = false;
-  }
 
+    if(this.Player2.isAtTurn) {
+      this.doNPCTurn();
+    }
+  }
+  doNPCTurn() {
+    this.Player2.doDrawCard();
+  }
   getPlayerTurn() {
     if (this.Player1.isAtTurn) return this.Player1;
     else return this.Player2;
   }
-
   update(time, delta) {
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
       let cardUsed = playerTurn.cardUsed;
-
-      let cardAnimation = new CardAnimations();
-      let battle = this.Battle;
+      playerTurn.table.push(cardUsed);
 
       cardUsed.depth = this.currentDepth++;
-      let timeLine = this.tweens.createTimeline();
-      timeLine.add(
-        cardAnimation.goto(
-          cardUsed,
-          battle.battlePosition.x,
-          battle.battlePosition.y,
-          function () {
-            battle.addPlayerCard(cardUsed.info);
-          }
-        )
-      );
-      timeLine.play();
+      this.arrangePlayerTable(playerTurn, cardUsed);
 
       this.swithPlayer();
     }
   }
-
+  arrangePlayerTable(player, cardUsed = null) {
+    if(player.table.length == 0) {
+      return;
+    }
+    let cardAnimation = new CardAnimations();
+    let battle = this.Battle;
+    let x = battle.battlePosition.x;
+    let timeLine = this.tweens.createTimeline();
+    let moveLeft = (player.table.length - 1) * 30;
+    let card = 0;
+    for(;card < player.table.length-1;card++) {
+      timeLine.add(
+        cardAnimation.goto(
+          player.table[card].sprite,
+          x - moveLeft,
+          player.row * 60
+        )
+      );
+      moveLeft -= 60
+    }
+    timeLine.add(
+      cardAnimation.goto(
+        player.table[card].sprite,
+        x - moveLeft,
+        player.row * 60,
+        cardUsed == null ? null : function () {
+          battle.addPlayerCard(player,cardUsed);
+        }
+      )
+    );
+    timeLine.play();
+  }
   selectStartHand(player) {
     player.hand = player.popDeck(3);
+    player.arrangePlayerHand(null);
   }
 }
