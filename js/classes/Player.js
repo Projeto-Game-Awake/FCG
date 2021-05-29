@@ -22,22 +22,24 @@ class Player {
     this.isAtTurn = isMain;
     this.isMain = isMain;
 
-    let start = y;
+    let startY = y;
     let step = 60;
 
     if (x > 60) {
       step *= -1;
     }
-    start += step;
-    this.deck = new Deck(x, start, side);
+    startY += step;
+    this.deck = new Deck(x, startY, side);
     if(isMain) {
       this.deck.sprite.setInteractive();
-      this.deck.sprite.on("pointerdown", this.doDrawCard, this);
+      this.deck.sprite.on("pointerdown", function() {
+        this.doDrawCard()
+      }, this);
     }
-    start += step;
-    this.retire = new Deck(x, start, side, 1);
-    start += step;
-    this.exile = new Deck(x, start, side, 2);
+    startY += step;
+    this.retire = new Deck(x, startY, side, 1);
+    startY += step;
+    this.exile = new Deck(x, startY, side, 2);
     this.suffleCard();
   }
 
@@ -65,20 +67,35 @@ class Player {
     this.hasPlayed = true;
     this.arrangePlayerHand(card);
   }
-  doDrawCard() {
+  doDrawCard(callback = null) {
     if(this.board.phase == board.Phase.draw) {
+      if(this.deck.cards.length == 0) {
+        this.board.endGame("As cartas acabaram. Fim do Jogo!");
+        return;
+      }
       this.hand.push(this.popDeck()[0]);
-      this.arrangePlayerHand(null);
+      this.arrangePlayerHand(null,callback);
       this.board.phase = board.Phase.pre;
     }
   }
   drawCard(card) {
-    card.sprite = scene.add.sprite(
-      this.startX,
-      this.y,
-      CardSide[this.deck.side],
-      card.type
-    );
+    
+    if(this.isMain) {
+      card.sprite = scene.add.sprite(
+        this.startX,
+        this.y,
+        CardSide[this.deck.side],
+        card.type
+      ); 
+    } else {
+      card.sprite = scene.add.sprite(
+        this.startX,
+        this.y,
+        "decks",
+        0
+      );
+      card.isHidden = true;     
+    }
 
     let cardDisplay = card.sprite;
     cardDisplay.setInteractive();
@@ -102,7 +119,7 @@ class Player {
       this.clearTint();
     });
   }
-  arrangePlayerHand(removedCard) {
+  arrangePlayerHand(removedCard, callback = function() {}) {
     if(removedCard != null) {
       this.hand.splice(this.hand.indexOf(removedCard),1);
     }
@@ -112,14 +129,13 @@ class Player {
     }
 
     let x = 240;
-    let cardAnimation = new CardAnimations();
 
     let timeLine = scene.tweens.createTimeline();
     let moveLeft = (this.hand.length - 1) * 30;
     let card = 0;
     for(;card < this.hand.length-1;card++) {
       timeLine.add(
-        cardAnimation.goto(
+        CardAnimations.goto(
           this.hand[card].sprite,
           x - moveLeft,
           this.handRow * 60
@@ -128,16 +144,19 @@ class Player {
       moveLeft -= 60
     }
     timeLine.add(
-      cardAnimation.goto(
+      CardAnimations.goto(
         this.hand[card].sprite,
         x - moveLeft,
         this.handRow * 60,
-        function () {
-          
-        }
+        callback
       )
     );
     timeLine.play();
+  }
+  selectCard() {
+    return this.hand[
+      Phaser.Math.Between(0, this.hand.length - 1)
+    ];
   }
   calcDamage(card) {
     this.hp -= card.stats.attack;

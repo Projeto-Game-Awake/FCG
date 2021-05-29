@@ -1,6 +1,6 @@
 class CardAnimations {
   constructor() {}
-  goto(image, x, y, callback) {
+  static goto(image, x, y, callback) {
     return {
       targets: image,
       x: x,
@@ -11,10 +11,26 @@ class CardAnimations {
     };
   }
   static toRetire(player,card, callback) {
+    return CardAnimations.goto(card,player.retire.x, player.retire.y, callback);
+  }
+  static startFlip(image,x,y,callback) {
     return {
-      targets: card,
-      x: player.retire.x,
-      y: player.retire.y,
+      targets: image,
+      x: x,
+      y: y,
+      scaleX: 0.1,
+      duration: 150,
+      ease: "Linear",
+      onComplete: callback,
+    };
+  }
+  static endFlip(card,x,y,callback) {
+    card.sprite.setTexture(Card.sides[card.side],card.type);
+    return {
+      targets: card.sprite,
+      x: x,
+      y: y,
+      scaleX: 1,
       duration: 150,
       ease: "Linear",
       onComplete: callback,

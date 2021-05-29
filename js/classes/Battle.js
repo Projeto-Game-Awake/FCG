@@ -43,7 +43,7 @@ class Battle {
       }
     }
     if(msg != "") {
-      alert(msg);
+      board.endGame(msg);
     }
     for(let i=0;i<minor;i++) {
       if (firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed) {
@@ -87,7 +87,6 @@ class Battle {
       } else {
         msg = "As Sombras prevaleceram!";
       }
-      playerDealer.board.phase = board.Phase.end;
     }
     return msg;
   }
