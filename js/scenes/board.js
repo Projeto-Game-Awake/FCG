@@ -1,11 +1,11 @@
 class board extends Phaser.Scene {
   static Phase = {
-    draw:0,
-    pre:1,
-    battle:2,
-    pos:3,
-    end:4
-  }
+    draw: 0,
+    pre: 1,
+    battle: 2,
+    pos: 3,
+    end: 4,
+  };
   constructor() {
     super("FCG-board");
 
@@ -33,12 +33,48 @@ class board extends Phaser.Scene {
       frameWidth: 60,
       frameHeight: 60,
     });
+
+    this.load.bitmapFont("hud", "assets/hud.png", "assets/hud.fnt");
   }
   create() {
     scene = this;
 
-    this.Player1 = new Player(this,420, 420, 0, scene, true);
-    this.Player2 = new Player(this,60, 60, 1, scene);
+    this.Player1 = new Player(this, 420, 420, 0, scene, true);
+    this.Player2 = new Player(this, 60, 60, 1, scene);
+
+    const screenCenterX =
+      scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
+    const screenCenterY =
+      scene.cameras.main.worldView.y + scene.cameras.main.height / 2;
+
+    console.log(screenCenterX, screenCenterY);
+
+    this.hud = new Hud(
+      scene,
+      screenCenterX,
+      screenCenterY,
+      this.Player1,
+      this.Player2
+    );
+    let player1LifeBar = new AutoUpdaterTextComponent(
+      scene,
+      80,
+      -80,
+      32,
+      this.Player1,
+      "hp"
+    );
+    let player2LifeBar = new AutoUpdaterTextComponent(
+      scene,
+      -120,
+      80,
+      32,
+      this.Player2,
+      "hp"
+    );
+
+    this.hud.addItem(player1LifeBar);
+    this.hud.addItem(player2LifeBar);
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
@@ -64,12 +100,12 @@ class board extends Phaser.Scene {
     this.Player1.hasPlayed = false;
     this.Player2.hasPlayed = false;
 
-    if(this.Player2.isAtTurn) {
+    if (this.Player2.isAtTurn) {
       this.doNPCTurn();
     }
   }
   doNPCTurn() {
-    this.Player2.doDrawCard(function() {
+    this.Player2.doDrawCard(function () {
       let card = scene.Player2.selectCard();
       scene.Player2.useCard(card);
     });
@@ -79,34 +115,45 @@ class board extends Phaser.Scene {
     else return this.Player2;
   }
   update(time, delta) {
+    this.hud.update();
+
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
       playerTurn.hasPlayed = false;
       let cardUsed = playerTurn.cardUsed;
-      let battleFunction = function() {
+      let battleFunction = function () {
         scene.phase = board.Phase.battle;
         playerTurn.table.push(cardUsed);
         cardUsed.depth = scene.currentDepth++;
         scene.arrangePlayerTable(playerTurn, cardUsed);
-      }
-      if(playerTurn.isMain) {
+      };
+      if (playerTurn.isMain) {
         battleFunction();
       } else {
         cardUsed.isHidden = false;
-        
+
         let timeLine = scene.tweens.createTimeline();
         timeLine.add(
-          CardAnimations.startFlip(cardUsed.sprite,cardUsed.sprite.x,playerTurn.row*60)
+          CardAnimations.startFlip(
+            cardUsed.sprite,
+            cardUsed.sprite.x,
+            playerTurn.row * 60
+          )
         );
         timeLine.add(
-          CardAnimations.endFlip(cardUsed,cardUsed.sprite.x,playerTurn.row*60,battleFunction)
+          CardAnimations.endFlip(
+            cardUsed,
+            cardUsed.sprite.x,
+            playerTurn.row * 60,
+            battleFunction
+          )
         );
         timeLine.play();
       }
     }
   }
   arrangePlayerTable(player, cardUsed = null) {
-    if(player.table.length == 0) {
+    if (player.table.length == 0) {
       return;
     }
     let battle = this.Battle;
@@ -114,7 +161,7 @@ class board extends Phaser.Scene {
     let timeLine = this.tweens.createTimeline();
     let moveLeft = (player.table.length - 1) * 30;
     let card = 0;
-    for(;card < player.table.length-1;card++) {
+    for (; card < player.table.length - 1; card++) {
       timeLine.add(
         CardAnimations.goto(
           player.table[card].sprite,
@@ -122,7 +169,7 @@ class board extends Phaser.Scene {
           player.row * 60
         )
       );
-      moveLeft -= 60
+      moveLeft -= 60;
     }
     let board = this;
     timeLine.add(
@@ -130,12 +177,14 @@ class board extends Phaser.Scene {
         player.table[card].sprite,
         x - moveLeft,
         player.row * 60,
-        cardUsed == null ? null : function () {
-          setTimeout(function() {
-            battle.addPlayerCard(player,cardUsed);
-            board.switchPlayer();
-          }, 400);
-        }
+        cardUsed == null
+          ? null
+          : function () {
+              setTimeout(function () {
+                battle.addPlayerCard(player, cardUsed);
+                board.switchPlayer();
+              }, 400);
+            }
       )
     );
     timeLine.play();

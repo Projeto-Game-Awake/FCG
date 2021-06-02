@@ -9,17 +9,9 @@ class Player {
     if (x == 60) {
       this.handRow = 1;
       this.row = 3;
-      this.bar = instance.add.text(420, 60, this.hp, {
-        font: "24px Courier",
-        fill: "#00ff00",
-      });
     } else {
       this.handRow = 7;
       this.row = 5;
-      this.bar = instance.add.text(60, 420, this.hp, {
-        font: "24px Courier",
-        fill: "#00ff00",
-      });
     }
     this.hand = [];
     this.table = [];
@@ -166,6 +158,5 @@ class Player {
   }
   calcDamage(card) {
     this.hp -= card.stats.attack;
-    this.bar.setText(this.hp);
   }
 }
