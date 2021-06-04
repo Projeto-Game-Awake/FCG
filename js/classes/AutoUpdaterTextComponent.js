@@ -1,6 +1,5 @@
 class AutoUpdaterTextComponent extends Phaser.GameObjects.Container {
   constructor(scene, x, y, size, objectToLook, paramName) {
-    console.log(objectToLook[paramName]);
     let item = new Phaser.GameObjects.BitmapText(
       scene,
       x,
@@ -15,10 +14,16 @@ class AutoUpdaterTextComponent extends Phaser.GameObjects.Container {
     this.item = item;
     this.objectToLook = objectToLook;
     this.paramName = paramName;
+
+    this.scene.add.existing(this);
   }
 
   componentText() {
     return `${this.objectToLook[this.paramName]}`;
+  }
+
+  setTint(tintColor) {
+    this.item.setTint(tintColor);
   }
 
   update() {

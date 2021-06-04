@@ -11,7 +11,7 @@ class board extends Phaser.Scene {
 
     this.Fields = [];
     this.Battle = new Battle();
-    this.currentDepth = 0;
+    this.currentDepth = 1;
     this.Player1 = null;
     this.Player2 = null;
     this.phase = board.Phase.draw;
@@ -35,19 +35,22 @@ class board extends Phaser.Scene {
     });
 
     this.load.bitmapFont("hud", "assets/hud.png", "assets/hud.fnt");
+
+    this.load.image("cardbase", "assets/spritesheets/cardbase.png");
+    this.load.image("back", "assets/spritesheets/back.png");
   }
   create() {
     scene = this;
 
-    this.Player1 = new Player(this, 420, 420, 0, scene, true);
-    this.Player2 = new Player(this, 60, 60, 1, scene);
+    this.Player1 = new Player(this, 500, 420, 0, true);
+    this.Player2 = new Player(this, 60, 60, 1);
+
+    console.log(scene.cameras.main.worldView.x, scene.cameras.main.width);
 
     const screenCenterX =
       scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
     const screenCenterY =
       scene.cameras.main.worldView.y + scene.cameras.main.height / 2;
-
-    console.log(screenCenterX, screenCenterY);
 
     this.hud = new Hud(
       scene,
@@ -58,34 +61,50 @@ class board extends Phaser.Scene {
     );
     let player1LifeBar = new AutoUpdaterTextComponent(
       scene,
-      80,
-      -80,
+      -(scene.cameras.main.width / 4 - 20),
+      -(-scene.cameras.main.height / 4 + 20),
       32,
       this.Player1,
       "hp"
     );
+
+    player1LifeBar.setTint(getTintBySide(0));
     let player2LifeBar = new AutoUpdaterTextComponent(
       scene,
-      -120,
-      80,
+      scene.cameras.main.width / 4 - 20,
+      -scene.cameras.main.height / 4 + 20,
       32,
       this.Player2,
       "hp"
     );
+    player2LifeBar.setTint(getTintBySide(1));
 
     this.hud.addItem(player1LifeBar);
     this.hud.addItem(player2LifeBar);
 
+    let boardItemSize = 70;
+
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
       for (let j = 0; j < 2; j++) {
-        this.Fields[i][j] = new Field(60 * (i + 2), 60 * (j + 2), 2);
+        this.Fields[i][j] = new Field(
+          boardItemSize * (i + 2),
+          boardItemSize * (j + 2),
+          2
+        );
       }
 
-      this.Fields[i][2] = new Field(60 * (i + 2), 60 * (2 + 2), 1);
+      this.Fields[i][2] = new Field(
+        boardItemSize * (i + 2),
+        boardItemSize * (2 + 2),
+        1
+      );
 
       for (let j = 3; j < 5; j++) {
-        this.Fields[i][j] = new Field(60 * (i + 2), 60 * (j + 2));
+        this.Fields[i][j] = new Field(
+          boardItemSize * (i + 2),
+          boardItemSize * (j + 2)
+        );
       }
     }
 
@@ -134,16 +153,12 @@ class board extends Phaser.Scene {
 
         let timeLine = scene.tweens.createTimeline();
         timeLine.add(
-          CardAnimations.startFlip(
-            cardUsed.sprite,
-            cardUsed.sprite.x,
-            playerTurn.row * 60
-          )
+          CardAnimations.startFlip(cardUsed, cardUsed.x, playerTurn.row * 60)
         );
         timeLine.add(
           CardAnimations.endFlip(
             cardUsed,
-            cardUsed.sprite.x,
+            cardUsed.x,
             playerTurn.row * 60,
             battleFunction
           )
@@ -163,18 +178,14 @@ class board extends Phaser.Scene {
     let card = 0;
     for (; card < player.table.length - 1; card++) {
       timeLine.add(
-        CardAnimations.goto(
-          player.table[card].sprite,
-          x - moveLeft,
-          player.row * 60
-        )
+        CardAnimations.goto(player.table[card], x - moveLeft, player.row * 60)
       );
       moveLeft -= 60;
     }
     let board = this;
     timeLine.add(
       CardAnimations.goto(
-        player.table[card].sprite,
+        player.table[card],
         x - moveLeft,
         player.row * 60,
         cardUsed == null

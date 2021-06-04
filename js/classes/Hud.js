@@ -13,11 +13,7 @@ class Hud extends Phaser.GameObjects.Container {
 
   addItem(item) {
     this.items.push(item);
-
-    console.log(item);
     this.add(item);
-
-    console.log("HUD", this);
   }
 
   update() {
