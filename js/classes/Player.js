@@ -94,7 +94,6 @@ class Player {
           (player.board.phase == board.Phase.pre ||
             player.board.phase == board.Phase.pos)
         ) {
-          console.log("VAI USAR");
           player.useCard(card);
         }
       });
@@ -113,24 +112,14 @@ class Player {
 
     let x = 240;
 
-    let timeLine = scene.tweens.createTimeline();
     let moveLeft = (this.hand.length - 1) * 30;
     let card = 0;
     for (; card < this.hand.length - 1; card++) {
-      timeLine.add(
-        CardAnimations.goto(this.hand[card], x - moveLeft, this.handRow * 60)
-      );
+      this.hand[card].move(x - moveLeft, this.handRow * 60);
       moveLeft -= 60;
     }
-    timeLine.add(
-      CardAnimations.goto(
-        this.hand[card],
-        x - moveLeft,
-        this.handRow * 60,
-        callback
-      )
-    );
-    timeLine.play();
+
+    this.hand[card].move(x - moveLeft, this.handRow * 60, callback);
   }
   selectCard() {
     return this.hand[Phaser.Math.Between(0, this.hand.length - 1)];

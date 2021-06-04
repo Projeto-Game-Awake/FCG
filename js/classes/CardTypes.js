@@ -9,7 +9,6 @@ tintSide = {
 };
 
 function getCardStatsByTypeAndSide(type, side) {
-  console.log("HERE", type, side);
   return sideMethod[side](type);
 }
 

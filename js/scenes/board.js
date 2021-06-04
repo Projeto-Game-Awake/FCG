@@ -45,8 +45,6 @@ class board extends Phaser.Scene {
     this.Player1 = new Player(this, 500, 420, 0, true);
     this.Player2 = new Player(this, 60, 60, 1);
 
-    console.log(scene.cameras.main.worldView.x, scene.cameras.main.width);
-
     const screenCenterX =
       scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
     const screenCenterY =
@@ -150,20 +148,7 @@ class board extends Phaser.Scene {
         battleFunction();
       } else {
         cardUsed.isHidden = false;
-
-        let timeLine = scene.tweens.createTimeline();
-        timeLine.add(
-          CardAnimations.startFlip(cardUsed, cardUsed.x, playerTurn.row * 60)
-        );
-        timeLine.add(
-          CardAnimations.endFlip(
-            cardUsed,
-            cardUsed.x,
-            playerTurn.row * 60,
-            battleFunction
-          )
-        );
-        timeLine.play();
+        cardUsed.turn(battleFunction);
       }
     }
   }
@@ -173,32 +158,21 @@ class board extends Phaser.Scene {
     }
     let battle = this.Battle;
     let x = battle.battlePosition.x;
-    let timeLine = this.tweens.createTimeline();
     let moveLeft = (player.table.length - 1) * 30;
     let card = 0;
     for (; card < player.table.length - 1; card++) {
-      timeLine.add(
-        CardAnimations.goto(player.table[card], x - moveLeft, player.row * 60)
-      );
+      player.table[card].move(x - moveLeft, player.row * 60);
       moveLeft -= 60;
     }
     let board = this;
-    timeLine.add(
-      CardAnimations.goto(
-        player.table[card],
-        x - moveLeft,
-        player.row * 60,
-        cardUsed == null
-          ? null
-          : function () {
-              setTimeout(function () {
-                battle.addPlayerCard(player, cardUsed);
-                board.switchPlayer();
-              }, 400);
-            }
-      )
-    );
-    timeLine.play();
+    player.table[card].move(x - moveLeft, player.row * 60, function () {
+      if (cardUsed) {
+        setTimeout(function () {
+          battle.addPlayerCard(player, cardUsed);
+          board.switchPlayer();
+        }, 400);
+      }
+    });
   }
   selectStartHand(player) {
     player.hand = player.popDeck(3);

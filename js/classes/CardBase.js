@@ -1,6 +1,5 @@
 class CardBase extends Phaser.GameObjects.Container {
   constructor(parent, x, y, type, side) {
-    console.log("ENTRAR", type, side);
     let stats = getCardStatsByTypeAndSide(type, side);
     let tintColor = getTintBySide(side);
 
@@ -61,6 +60,8 @@ class CardBase extends Phaser.GameObjects.Container {
       this.statTexts.push(statText);
 
       this.add(statText);
+
+      this.isShowingFace = true;
     }
 
     this.cardImage = cardImage;
@@ -82,6 +83,7 @@ class CardBase extends Phaser.GameObjects.Container {
   }
 
   showBack() {
+    this.isShowingFace = false;
     this.visible = true;
     this.cardImage.visible = false;
     this.backImage.visible = true;
@@ -91,6 +93,7 @@ class CardBase extends Phaser.GameObjects.Container {
     });
   }
   showFront() {
+    this.isShowingFace = true;
     this.visible = true;
     this.cardImage.visible = true;
     this.backImage.visible = false;
@@ -99,8 +102,29 @@ class CardBase extends Phaser.GameObjects.Container {
     });
   }
 
-  turn() {
-    this.cardImage.visible = !this.cardImage.visible;
-    this.backImage.visible = !this.backImage.visible;
+  move(x, y, callback) {
+    let timeLine = this.parent.tweens.createTimeline();
+    timeLine.add(CardAnimations.goto(this, x, y, callback));
+
+    timeLine.play();
+  }
+
+  turn(callback) {
+    let card = this;
+    let timeLine = this.parent.tweens.createTimeline();
+    timeLine.add(CardAnimations.startFlip(card, card.x, card.y));
+    timeLine.add(
+      CardAnimations.endFlip(card, card.x, card.y, function () {
+        if (card.isShowingFace) {
+          card.showBack();
+        } else {
+          card.showFront();
+        }
+        if (callback) {
+          callback();
+        }
+      })
+    );
+    timeLine.play();
   }
 }
