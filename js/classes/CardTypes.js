@@ -3,8 +3,17 @@ sideMethod = {
   1: getShadowCardTypes,
 };
 
+tintSide = {
+  0: 0xff0000,
+  1: 0x0000ff,
+};
+
 function getCardStatsByTypeAndSide(type, side) {
   return sideMethod[side](type);
+}
+
+function getTintBySide(side) {
+  return tintSide[side];
 }
 
 function getLightCardTypes(type) {

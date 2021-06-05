@@ -1,5 +1,5 @@
 class Player {
-  constructor(board, x, y, side = 0, instance, isMain = false) {
+  constructor(board, x, y, side = 0, isMain = false) {
     this.board = board;
     this.x = x;
     this.y = y;
@@ -9,21 +9,12 @@ class Player {
     if (x == 60) {
       this.handRow = 1;
       this.row = 3;
-      this.bar = instance.add.text(420, 60, this.hp, {
-        font: "24px Courier",
-        fill: "#00ff00",
-      });
     } else {
-      this.handRow = 7;
+      this.handRow = 9;
       this.row = 5;
-      this.bar = instance.add.text(60, 420, this.hp, {
-        font: "24px Courier",
-        fill: "#00ff00",
-      });
     }
     this.hand = [];
     this.table = [];
-    this.instance = instance;
     this.hasPlayed = false;
     this.isAtTurn = isMain;
     this.isMain = isMain;
@@ -35,7 +26,7 @@ class Player {
       step *= -1;
     }
     startY += step;
-    this.deck = new Deck(x, startY, side);
+    this.deck = new Deck(this.board, x, startY, side);
     if (isMain) {
       this.deck.sprite.setInteractive();
       this.deck.sprite.on(
@@ -47,9 +38,9 @@ class Player {
       );
     }
     startY += step;
-    this.retire = new Deck(x, startY, side, 1);
+    this.retire = new Deck(this.board, x, startY, side, 1);
     startY += step;
-    this.exile = new Deck(x, startY, side, 2);
+    this.exile = new Deck(this.board, x, startY, side, 2);
     this.suffleCard();
   }
 
@@ -88,44 +79,27 @@ class Player {
       this.board.phase = board.Phase.pre;
     }
   }
+
   drawCard(card) {
-    let cardDisplay;
-
     if (this.isMain) {
-      card.sprite = scene.add.sprite(
-        this.startX,
-        this.y,
-        CardSide[this.deck.side],
-        card.type
-      );
-      cardDisplay = card.sprite;
-      cardDisplay.setInteractive();
+      card.showFront();
+      card.x = this.startX;
+      card.y = this.y;
+      card.setInteractive();
+
+      let player = this;
+      card.on("pointerup", function (pointer) {
+        if (
+          player.isAtTurn &&
+          (player.board.phase == board.Phase.pre ||
+            player.board.phase == board.Phase.pos)
+        ) {
+          player.useCard(card);
+        }
+      });
     } else {
-      card.sprite = scene.add.sprite(this.startX, this.y, "decks", 0);
-      card.isHidden = true;
-      cardDisplay = card.sprite;
+      card.showBack();
     }
-
-    cardDisplay.on("pointerdown", function (pointer) {
-      this.setTint(0xff0000);
-    });
-
-    cardDisplay.on("pointerout", function (pointer) {
-      this.clearTint();
-    });
-
-    let player = this;
-
-    cardDisplay.on("pointerup", function (pointer) {
-      if (
-        player.isAtTurn &&
-        (player.board.phase == board.Phase.pre ||
-          player.board.phase == board.Phase.pos)
-      ) {
-        player.useCard(card);
-      }
-      this.clearTint();
-    });
   }
   arrangePlayerHand(removedCard, callback = function () {}) {
     if (removedCard != null) {
@@ -138,34 +112,19 @@ class Player {
 
     let x = 240;
 
-    let timeLine = scene.tweens.createTimeline();
     let moveLeft = (this.hand.length - 1) * 30;
     let card = 0;
     for (; card < this.hand.length - 1; card++) {
-      timeLine.add(
-        CardAnimations.goto(
-          this.hand[card].sprite,
-          x - moveLeft,
-          this.handRow * 60
-        )
-      );
+      this.hand[card].move(x - moveLeft, this.handRow * 60);
       moveLeft -= 60;
     }
-    timeLine.add(
-      CardAnimations.goto(
-        this.hand[card].sprite,
-        x - moveLeft,
-        this.handRow * 60,
-        callback
-      )
-    );
-    timeLine.play();
+
+    this.hand[card].move(x - moveLeft, this.handRow * 60, callback);
   }
   selectCard() {
     return this.hand[Phaser.Math.Between(0, this.hand.length - 1)];
   }
   calcDamage(card) {
     this.hp -= card.stats.attack;
-    this.bar.setText(this.hp);
   }
 }

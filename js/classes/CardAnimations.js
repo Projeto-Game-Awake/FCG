@@ -10,10 +10,8 @@ class CardAnimations {
       onComplete: callback,
     };
   }
-  static toRetire(player,card, callback) {
-    return CardAnimations.goto(card,player.retire.x, player.retire.y, callback);
-  }
-  static startFlip(image,x,y,callback) {
+
+  static startFlip(image, x, y, callback) {
     return {
       targets: image,
       x: x,
@@ -24,10 +22,9 @@ class CardAnimations {
       onComplete: callback,
     };
   }
-  static endFlip(card,x,y,callback) {
-    card.sprite.setTexture(Card.sides[card.side],card.type);
+  static endFlip(card, x, y, callback) {
     return {
-      targets: card.sprite,
+      targets: card,
       x: x,
       y: y,
       scaleX: 1,
