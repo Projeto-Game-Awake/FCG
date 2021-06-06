@@ -40,10 +40,19 @@ class board extends Phaser.Scene {
     this.load.image("back", "assets/spritesheets/back.png");
   }
   create() {
-    scene = this;
+    General.scene = "FCG-board";
+    scene = General.getCurrentScene();
 
-    this.Player1 = new Player(this, 500, 420, 0, true);
-    this.Player2 = new Player(this, 60, 60, 1);
+    let playerTurn = function() {};
+    let isPlayerTurn = Phaser.Math.Between(0,1) == 1;
+    if(isPlayerTurn) {
+      let current = this;
+      playerTurn = function() {
+        current.switchPlayer(); 
+      }
+    }
+    this.Player1 = new Player(500, 420, 0, isPlayerTurn);
+    this.Player2 = new EnemyPlayer(60, 60, 1, !isPlayerTurn);
 
     const screenCenterX =
       scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
@@ -108,6 +117,10 @@ class board extends Phaser.Scene {
 
     this.selectStartHand(this.Player1);
     this.selectStartHand(this.Player2);
+
+    setTimeout(
+      playerTurn, 300
+    )
   }
 
   switchPlayer() {
@@ -144,7 +157,7 @@ class board extends Phaser.Scene {
         cardUsed.depth = scene.currentDepth++;
         scene.arrangePlayerTable(playerTurn, cardUsed);
       };
-      if (playerTurn.isMain) {
+      if (playerTurn.isMain()) {
         battleFunction();
       } else {
         cardUsed.isHidden = false;

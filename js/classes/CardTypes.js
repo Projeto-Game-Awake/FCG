@@ -1,6 +1,7 @@
 sideMethod = {
   0: getLightCardTypes,
   1: getShadowCardTypes,
+  2: getMagicCardTypes,
 };
 
 tintSide = {
@@ -63,5 +64,20 @@ function getShadowCardTypes(type) {
     },
   ];
 
+  return cards[type];
+}
+
+function getMagicCardTypes(type) {
+  let cards = [
+    {
+      name: "retornar",
+    },
+    {
+      name: "vibração+",
+    },
+    {
+      name: "energia+",
+    },
+  ];
   return cards[type];
 }
