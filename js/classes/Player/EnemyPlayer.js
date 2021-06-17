@@ -1,49 +1,41 @@
-class Player {
-  constructor(board, x, y, side = 0, isMain = false) {
-    this.board = board;
+class EnemyPlayer {
+  constructor(x, y, side = 0, isAtTurn) {
+    this.board = General.getCurrentScene();
     this.x = x;
     this.y = y;
+    this.side = side;
 
     this.hp = 5;
     this.startX = 180;
-    if (x == 60) {
-      this.handRow = 1;
-      this.row = 3;
-    } else {
-      this.handRow = 9;
-      this.row = 5;
-    }
+
+    this.setPosition();
+
     this.hand = [];
     this.table = [];
     this.hasPlayed = false;
-    this.isAtTurn = isMain;
-    this.isMain = isMain;
+    this.isAtTurn = isAtTurn;
 
     let startY = y;
-    let step = 60;
+    let step = this.getStep();
 
-    if (x > 60) {
-      step *= -1;
-    }
     startY += step;
     this.deck = new Deck(this.board, x, startY, side);
-    if (isMain) {
-      this.deck.sprite.setInteractive();
-      this.deck.sprite.on(
-        "pointerdown",
-        function () {
-          this.doDrawCard();
-        },
-        this
-      );
-    }
     startY += step;
-    this.retire = new Deck(this.board, x, startY, side, 1);
+    this.retire = new Retire(this.board, x, startY, side, 1);
     startY += step;
-    this.exile = new Deck(this.board, x, startY, side, 2);
+    this.exile = new Retire(this.board, x, startY, side, 2);
     this.suffleCard();
   }
-
+  setPosition() {
+    this.handRow = 1;
+    this.row = 3;
+  }
+  getStep() {
+    return 60;
+  }
+  isMain() {
+    return false;
+  }
   suffleCard() {
     let newOrder = [];
     let i = 0;
@@ -69,37 +61,18 @@ class Player {
     this.arrangePlayerHand(card);
   }
   doDrawCard(callback = null) {
-    if (this.board.phase == board.Phase.draw) {
+    if (this.board.phase.isDraw()) {
       if (this.deck.cards.length == 0) {
         this.board.endGame("As cartas acabaram. Fim do Jogo!");
         return;
       }
       this.hand.push(this.popDeck()[0]);
       this.arrangePlayerHand(null, callback);
-      this.board.phase = board.Phase.pre;
+      this.board.phase.pre();
     }
   }
-
   drawCard(card) {
-    if (this.isMain) {
-      card.showFront();
-      card.x = this.startX;
-      card.y = this.y;
-      card.setInteractive();
-
-      let player = this;
-      card.on("pointerup", function (pointer) {
-        if (
-          player.isAtTurn &&
-          (player.board.phase == board.Phase.pre ||
-            player.board.phase == board.Phase.pos)
-        ) {
-          player.useCard(card);
-        }
-      });
-    } else {
-      card.showBack();
-    }
+    card.showBack();
   }
   arrangePlayerHand(removedCard, callback = function () {}) {
     if (removedCard != null) {
