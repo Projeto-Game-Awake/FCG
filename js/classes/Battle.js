@@ -21,8 +21,8 @@ class Battle {
     if (player.board.currentDepth > 1) {
       this.round(player.board);
     }
-    if (player.board.phase != board.Phase.end) {
-      player.board.phase = board.Phase.draw;
+    if (!player.board.phase.isEnd()) {
+      player.board.phase.draw();
     }
   }
 

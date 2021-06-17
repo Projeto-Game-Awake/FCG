@@ -11,7 +11,7 @@ class CardBase extends Phaser.GameObjects.Container {
     ).setTint(tintColor);
 
     let backImage = new Phaser.GameObjects.Sprite(parent, 0, 0, "back").setTint(
-      tintColor
+      getTintBySide(1)
     );
 
     let statPosByType = {
@@ -79,7 +79,8 @@ class CardBase extends Phaser.GameObjects.Container {
   }
 
   registerClick(callback) {
-    card.on("pointerup", callback);
+    //card.on("pointerup", callback);
+    cardImage.on("pointerup", callback);
   }
 
   showBack() {
@@ -109,7 +110,7 @@ class CardBase extends Phaser.GameObjects.Container {
     timeLine.play();
   }
 
-  turn(callback) {
+  turn(callback = null) {
     let card = this;
     let timeLine = this.parent.tweens.createTimeline();
     timeLine.add(CardAnimations.startFlip(card, card.x, card.y));

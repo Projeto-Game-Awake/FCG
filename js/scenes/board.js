@@ -1,11 +1,4 @@
 class board extends Phaser.Scene {
-  static Phase = {
-    draw: 0,
-    pre: 1,
-    battle: 2,
-    pos: 3,
-    end: 4,
-  };
   constructor() {
     super("FCG-board");
 
@@ -14,7 +7,7 @@ class board extends Phaser.Scene {
     this.currentDepth = 1;
     this.Player1 = null;
     this.Player2 = null;
-    this.phase = board.Phase.draw;
+    this.phase = null;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -33,6 +26,14 @@ class board extends Phaser.Scene {
       frameWidth: 60,
       frameHeight: 60,
     });
+    this.load.spritesheet("phase", "assets/spritesheets/phase.png", {
+      frameWidth: 60,
+      frameHeight: 30,
+    });
+    this.load.spritesheet("phases", "assets/spritesheets/phases.png", {
+      frameWidth: 173,
+      frameHeight: 75,
+    });
 
     this.load.bitmapFont("hud", "assets/hud.png", "assets/hud.fnt");
 
@@ -40,10 +41,38 @@ class board extends Phaser.Scene {
     this.load.image("back", "assets/spritesheets/back.png");
   }
   create() {
-    scene = this;
+    General.scene = "FCG-board";
+    scene = General.getCurrentScene();
 
-    this.Player1 = new Player(this, 500, 420, 0, true);
-    this.Player2 = new Player(this, 60, 60, 1);
+    let boardItemSize = 70;
+
+    for (let i = 0; i < 5; i++) {
+      this.Fields[i] = [];
+      for (let j = 0; j < 2; j++) {
+        this.Fields[i][j] = new Field(
+          boardItemSize * (i + 2),
+          boardItemSize * (j + 2),
+          2
+        );
+      }
+
+      this.Fields[i][2] = new Field(
+        boardItemSize * (i + 2),
+        boardItemSize * (2 + 2),
+        1
+      );
+
+      for (let j = 3; j < 5; j++) {
+        this.Fields[i][j] = new Field(
+          boardItemSize * (i + 2),
+          boardItemSize * (j + 2)
+        );
+      }
+    }
+
+    let isPlayerTurn = Phaser.Math.Between(0,1) == 0;
+    this.Player1 = new Player(500, 420, 0, true);
+    this.Player2 = new EnemyPlayer(60, 60, 1, false);
 
     const screenCenterX =
       scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
@@ -80,36 +109,28 @@ class board extends Phaser.Scene {
     this.hud.addItem(player1LifeBar);
     this.hud.addItem(player2LifeBar);
 
-    let boardItemSize = 70;
-
-    for (let i = 0; i < 5; i++) {
-      this.Fields[i] = [];
-      for (let j = 0; j < 2; j++) {
-        this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2),
-          2
-        );
-      }
-
-      this.Fields[i][2] = new Field(
-        boardItemSize * (i + 2),
-        boardItemSize * (2 + 2),
-        1
-      );
-
-      for (let j = 3; j < 5; j++) {
-        this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2)
-        );
-      }
-    }
+    let phases = this.add.sprite(60,450,"phase");
+    this.phase = new Phase(this,120,300);
+    phases.setInteractive();
+    phases.on("pointerdown", function() {
+      this.phase.visible = true;
+    },this);
 
     this.selectStartHand(this.Player1);
     this.selectStartHand(this.Player2);
-  }
 
+    let playerTurn = function() {};
+    if(!isPlayerTurn) {
+      let current = this;
+      playerTurn = function() {
+        current.switchPlayer(); 
+      }
+    }
+    setTimeout(
+      playerTurn, 300
+    )
+    
+  }
   switchPlayer() {
     this.Player1.isAtTurn = !this.Player1.isAtTurn;
     this.Player2.isAtTurn = !this.Player2.isAtTurn;
@@ -136,20 +157,19 @@ class board extends Phaser.Scene {
 
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
-      playerTurn.hasPlayed = false;
-      let cardUsed = playerTurn.cardUsed;
+      this.switchPlayer();
       let battleFunction = function () {
         scene.phase = board.Phase.battle;
-        playerTurn.table.push(cardUsed);
-        cardUsed.depth = scene.currentDepth++;
-        scene.arrangePlayerTable(playerTurn, cardUsed);
+        //cardUsed.depth = scene.currentDepth++;
+        scene.arrangePlayerTable(playerTurn);
       };
-      if (playerTurn.isMain) {
+
+      /*if (playerTurn.isMain()) {
         battleFunction();
       } else {
-        cardUsed.isHidden = false;
-        cardUsed.turn(battleFunction);
-      }
+        //cardUsed.isHidden = false;
+        //cardUsed.turn(battleFunction);
+      }*/
     }
   }
   arrangePlayerTable(player, cardUsed = null) {
@@ -169,7 +189,7 @@ class board extends Phaser.Scene {
       if (cardUsed) {
         setTimeout(function () {
           battle.addPlayerCard(player, cardUsed);
-          board.switchPlayer();
+          //board.switchPlayer();
         }, 400);
       }
     });
@@ -180,6 +200,6 @@ class board extends Phaser.Scene {
   }
   endGame(msg) {
     alert(msg);
-    this.phase = board.Phase.end;
+    this.phase.end();
   }
 }
