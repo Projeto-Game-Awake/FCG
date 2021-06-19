@@ -5,7 +5,7 @@ class EnemyPlayer {
     this.y = y;
     this.side = side;
 
-    this.hp = 5;
+    this.hp = 10;
     this.startX = 180;
 
     this.setPosition();
@@ -15,15 +15,16 @@ class EnemyPlayer {
     this.hasPlayed = false;
     this.isAtTurn = isAtTurn;
 
-    let startY = y;
+    let startY = y - this.getStep() * 3;
     let step = this.getStep();
 
     startY += step;
-    this.deck = new Deck(this.board, x, startY, side);
+    this.exile = new Retire(this.board, x, startY, side, 2);
     startY += step;
     this.retire = new Retire(this.board, x, startY, side, 1);
     startY += step;
-    this.exile = new Retire(this.board, x, startY, side, 2);
+    this.deck = new Deck(this.board, x, startY, side);
+
     this.suffleCard();
   }
   setPosition() {
@@ -31,7 +32,7 @@ class EnemyPlayer {
     this.row = 3;
   }
   getStep() {
-    return 60;
+    return -60;
   }
   isMain() {
     return false;
@@ -55,10 +56,26 @@ class EnemyPlayer {
     this.deck.cards.splice(0, times);
     return selectedCards;
   }
+  retireCard(card) {
+    this.table.splice(this.table.indexOf(card), 1);
+    this.retire.cards.push(card);
+    let retirePosition = this.retire;
+    card.move(retirePosition.x, retirePosition.y);
+    card.on("pointerup", function (pointer) {
+
+    });
+  }
   useCard(card) {
     this.cardUsed = card;
-    this.hasPlayed = true;
-    this.arrangePlayerHand(card);
+    this.removeHand(card);
+    this.table.push(card);
+    this.board.arrangePlayerTable(this, function() {
+      card.turn();
+    });
+    this.arrangePlayerHand();
+  }
+  removeHand(card) {
+    this.hand.splice(this.hand.indexOf(card),1);
   }
   doDrawCard(callback = null) {
     if (this.board.phase.isDraw()) {
@@ -67,18 +84,14 @@ class EnemyPlayer {
         return;
       }
       this.hand.push(this.popDeck()[0]);
-      this.arrangePlayerHand(null, callback);
+      this.arrangePlayerHand(callback);
       this.board.phase.pre();
     }
   }
   drawCard(card) {
     card.showBack();
   }
-  arrangePlayerHand(removedCard, callback = function () {}) {
-    if (removedCard != null) {
-      this.hand.splice(this.hand.indexOf(removedCard), 1);
-    }
-
+  arrangePlayerHand(callback = function () {}) {
     if (this.hand.length == 0) {
       return;
     }
@@ -95,7 +108,17 @@ class EnemyPlayer {
     this.hand[card].move(x - moveLeft, this.handRow * 60, callback);
   }
   selectCard() {
-    return this.hand[Phaser.Math.Between(0, this.hand.length - 1)];
+    let currentCards = this.hand;
+    while(currentCards.length > 0) {
+      let index = Phaser.Math.Between(0, currentCards.length - 1);
+      let card = this.hand[index];
+      if(card instanceof CardMagic) {
+        currentCards.splice(index,1);
+      } else {
+        return card;
+      }
+    }
+    return null;
   }
   calcDamage(card) {
     this.hp -= card.stats.attack;

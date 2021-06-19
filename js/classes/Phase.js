@@ -13,7 +13,16 @@ class Phase extends Phaser.GameObjects.Container {
       let battleButton = new Phaser.GameObjects.Sprite(parent,210,10,"phases",1);
       let posButton = new Phaser.GameObjects.Sprite(parent,410,10,"phases",2);
       let endButton = new Phaser.GameObjects.Sprite(parent,210,100,"phases",3);
-      super(parent, x, y, [popup,preButton, battleButton, posButton, endButton]);
+      super(parent, x, y, [popup,preButton,battleButton,posButton,endButton]);
+
+      this.setDisabledAlpha(preButton);
+      this.setDisabledAlpha(battleButton);
+
+      popup.setInteractive();
+      popup.on("pointerdown", function() {
+        this.visible = false;
+      },this);
+
       preButton.setInteractive();
       preButton.on("pointerdown", function() {
         this.visible = false;
@@ -21,27 +30,44 @@ class Phase extends Phaser.GameObjects.Container {
 
       battleButton.setInteractive();
       battleButton.on("pointerdown", function() {
-        parent.phase.battle();
+        if(battleButton.alpha == 1) {
+            parent.phase.battle();
+            this.setDisabledAlpha(preButton);
+            this.setDisabledAlpha(battleButton);
+        }
         this.visible = false;
       },this);
 
       posButton.setInteractive();
       posButton.on("pointerdown", function() {
-        parent.phase.pos();
+        if(posButton.alpha == 1) {
+            parent.phase.pos();
+            this.setDisabledAlpha(preButton);
+            this.setDisabledAlpha(battleButton);
+            this.setDisabledAlpha(posButton);
+        }
         this.visible = false;
       },this);
 
       endButton.setInteractive();
       endButton.on("pointerdown", function() {
+        this.setEnabledAlpha([battleButton,posButton]);
+        parent.phase.end();
         parent.phase.draw();
-        this.visible = false;
-        parent.getPlayerTurn().hasPlayed = true;
       },this);
 
       parent.add.existing(this);
       this.parent = parent;
       this.visible = false;
       this.draw();
+    }
+    setEnabledAlpha(buttons) {
+        for(let button in buttons) {
+            buttons[button].alpha = 1;
+        }
+    }
+    setDisabledAlpha(button) {
+        button.alpha = 0.3;
     }
     draw() {
         this.value = Phase.state.draw;
@@ -57,18 +83,23 @@ class Phase extends Phaser.GameObjects.Container {
     }
     battle() {
         this.value = Phase.state.battle;
+        new Battle().round(scene.Player2.board);
     }
     isBattle() {
         return this.value == Phase.state.battle;
     }
     pos() {
         this.value = Phase.state.pos;
+        this.visible = false;
     }
     isPos() {
         return this.value == Phase.state.pos;
     }
     end() {
         this.value = Phase.state.end;
+        this.visible = false;
+        this.parent.getPlayerTurn().hasPlayed = true;
+        this.parent.hasSummoned = false;
     }
     isEnd() {
         return this.value == Phase.state.end;

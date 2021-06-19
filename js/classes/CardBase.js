@@ -70,18 +70,21 @@ class CardBase extends Phaser.GameObjects.Container {
     this.stats = stats;
     this.parent.add.existing(this);
 
+    this.setSize(66,120);
     this.setInteractive(
-      new Phaser.Geom.Circle(0, 0, 60),
-      Phaser.Geom.Circle.Contains
+      new Phaser.Geom.Rectangle(0, 0, 66, 120),
+      Phaser.Geom.Rectangle.Contains
     );
 
     this.visible = false;
   }
-
+  canSelect() {
+    return true;
+  }/*
   registerClick(callback) {
     //card.on("pointerup", callback);
     cardImage.on("pointerup", callback);
-  }
+  }*/
 
   showBack() {
     this.isShowingFace = false;

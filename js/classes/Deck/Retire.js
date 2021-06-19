@@ -4,7 +4,7 @@ class Retire {
     this.y = y;
     this.side = side;
     this.sprite = parent.add.sprite(x, y, "decks", type);
-    this.card = [];
+    this.cards = [];
   }
   add(card) {
 

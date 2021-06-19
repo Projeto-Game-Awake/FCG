@@ -16,10 +16,19 @@ class Player extends EnemyPlayer {
     this.row = 5;
   }
   getStep() {
-    return -60;
+    return 60;
   }
   isMain() {
     return true;
+  }
+  useCard(card) {
+    if(card.canSelect()) {
+      this.cardUsed = card;
+      this.removeHand(card);
+      this.table.push(card);
+      this.board.arrangePlayerTable(this);
+      this.arrangePlayerHand();
+    }
   }
   drawCard(card) {
     card.showFront();
@@ -28,14 +37,31 @@ class Player extends EnemyPlayer {
     card.setInteractive();
 
     let player = this;
-    card.on("pointerup", function (pointer) {
-      if (
-        player.isAtTurn &&
-        (player.board.phase.isPre() ||
-          player.board.phase.isPos())
-      ) {
+    if(card instanceof CardMagic) {
+      card.on("pointerup", function (pointer) {
         player.useCard(card);
-      }
-    });
+      });
+    } else {
+      card.on("pointerup", function (pointer) {
+        if (player.canPlay()) {
+          player.board.hasSummoned = true;
+          player.useCard(card);
+          card.on("pointerup", function (pointer) {
+            if(this.board.selectedHandCard) {
+                this.board.selectedHandCard.update(card);
+                this.removeHand(this.board.selectedHandCard);
+                this.retireCard(this.board.selectedHandCard);
+                this.board.selectedHandCard = null;
+                this.arrangePlayerHand();
+            }
+          }, player);
+        }
+      });
+    }
+  }
+  canPlay() {
+    return this.isAtTurn && !this.board.hasSummoned &&
+           (this.board.phase.isPre() ||
+            this.board.phase.isPos());
   }
 }

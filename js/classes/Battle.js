@@ -27,55 +27,54 @@ class Battle {
   }
 
   round(board) {
-    let total1 = board.Player1.table.length;
-    let total2 = board.Player2.table.length;
-    let minor = Math.min(total1, total2);
-    let firstPlayer = board.Player1;
-    let secondPlayer = board.Player2;
-    let msg = "";
-    // Ataca diretamente o líder
-    if (total1 != total2) {
-      let maxBattle = Math.max(total1, total2);
-      if (total1 < total2) {
-        msg = this.directAttack(board.Player1, board.Player2, minor, maxBattle);
-      } else {
-        msg = this.directAttack(board.Player2, board.Player1, minor, maxBattle);
+    try {
+      let total1 = board.Player1.table.length;
+      let total2 = board.Player2.table.length;
+      let minor = Math.min(total1, total2);
+      let firstPlayer = board.Player1;
+      let secondPlayer = board.Player2;
+      let msg = "";
+      // Ataca diretamente o líder
+      if (total1 != total2) {
+        let maxBattle = Math.max(total1, total2);
+        if (total1 < total2) {
+          msg = this.directAttack(board.Player1, board.Player2, minor, maxBattle);
+        } else {
+          msg = this.directAttack(board.Player2, board.Player1, minor, maxBattle);
+        }
       }
-    }
-    if (msg != "") {
-      board.endGame(msg);
-    }
-    for (let i = 0; i < minor; i++) {
-      if (
-        firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed
-      ) {
-        let temp = firstPlayer;
-        firstPlayer = secondPlayer;
-        secondPlayer = temp;
+      if (msg != "") {
+        board.endGame(msg);
       }
-      let first = firstPlayer.table[i];
-      let second = secondPlayer.table[i];
+      for (let i = 0; i < minor; i++) {
+        if (
+          firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed
+        ) {
+          let temp = firstPlayer;
+          firstPlayer = secondPlayer;
+          secondPlayer = temp;
+        }
+        let first = firstPlayer.table[i];
+        let second = secondPlayer.table[i];
 
-      second.stats.hp -= first.stats.attack;
-      if (first.stats.speed == second.stats.speed) {
-        first.stats.hp -= second.stats.attack;
+        second.stats.hp -= first.stats.attack;
+        if (first.stats.speed == second.stats.speed) {
+          first.stats.hp -= second.stats.attack;
+        }
+        if (second.stats.hp <= 0) {
+          secondPlayer.retireCard(second);
+        } else if (first.stats.speed != second.stats.speed) {
+          first.stats.hp -= second.stats.attack;
+        }
+        if (first.stats.hp <= 0) {
+          firstPlayer.retireCard(first);
+        }
       }
-      if (second.stats.hp <= 0) {
-        this.retireCard(secondPlayer, second);
-      } else if (first.stats.speed != second.stats.speed) {
-        first.stats.hp -= second.stats.attack;
-      }
-      if (first.stats.hp <= 0) {
-        this.retireCard(firstPlayer, first);
-      }
+      board.arrangePlayerTable(firstPlayer);
+      board.arrangePlayerTable(secondPlayer);
+    } catch {
+      
     }
-    board.arrangePlayerTable(firstPlayer);
-    board.arrangePlayerTable(secondPlayer);
-  }
-  retireCard(player, card) {
-    player.table.splice(player.table.indexOf(card), 1);
-    let retirePosition = player.retire;
-    card.move(retirePosition.x, retirePosition.y);
   }
   directAttack(playerReciver, playerDealer, minor, maxBattle) {
     for (let i = minor; i < maxBattle; i++) {

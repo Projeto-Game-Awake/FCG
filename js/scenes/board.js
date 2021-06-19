@@ -8,6 +8,8 @@ class board extends Phaser.Scene {
     this.Player1 = null;
     this.Player2 = null;
     this.phase = null;
+    this.selectedHandCard = null;
+    this.hasSummoned = false;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -70,7 +72,7 @@ class board extends Phaser.Scene {
       }
     }
 
-    let isPlayerTurn = Phaser.Math.Between(0,1) == 0;
+    let isPlayerTurn = Phaser.Math.Between(0,1) >= 0;
     this.Player1 = new Player(500, 420, 0, true);
     this.Player2 = new EnemyPlayer(60, 60, 1, false);
 
@@ -113,7 +115,9 @@ class board extends Phaser.Scene {
     this.phase = new Phase(this,120,300);
     phases.setInteractive();
     phases.on("pointerdown", function() {
-      this.phase.visible = true;
+      if(!this.phase.isDraw()) {
+        this.phase.visible = true;
+      }
     },this);
 
     this.selectStartHand(this.Player1);
@@ -143,9 +147,16 @@ class board extends Phaser.Scene {
     }
   }
   doNPCTurn() {
-    this.Player2.doDrawCard(function () {
-      let card = scene.Player2.selectCard();
-      scene.Player2.useCard(card);
+    let p2 = this.Player2;
+    p2.doDrawCard(function () {
+      let card = p2.selectCard();
+      p2.useCard(card);
+      if (p2.board.currentDepth > 1) {
+        p2.board.phase.battle();
+      }
+
+      p2.board.switchPlayer();
+      p2.board.phase.draw();
     });
   }
   getPlayerTurn() {
@@ -159,7 +170,7 @@ class board extends Phaser.Scene {
     if (playerTurn.hasPlayed) {
       this.switchPlayer();
       let battleFunction = function () {
-        scene.phase = board.Phase.battle;
+        scene.phase.battle();
         //cardUsed.depth = scene.currentDepth++;
         scene.arrangePlayerTable(playerTurn);
       };
@@ -172,7 +183,7 @@ class board extends Phaser.Scene {
       }*/
     }
   }
-  arrangePlayerTable(player, cardUsed = null) {
+  arrangePlayerTable(player, callback) {
     if (player.table.length == 0) {
       return;
     }
@@ -185,14 +196,7 @@ class board extends Phaser.Scene {
       moveLeft -= 60;
     }
     let board = this;
-    player.table[card].move(x - moveLeft, player.row * 60, function () {
-      if (cardUsed) {
-        setTimeout(function () {
-          battle.addPlayerCard(player, cardUsed);
-          //board.switchPlayer();
-        }, 400);
-      }
-    });
+    player.table[card].move(x - moveLeft, player.row * 60, callback);
   }
   selectStartHand(player) {
     player.hand = player.popDeck(3);

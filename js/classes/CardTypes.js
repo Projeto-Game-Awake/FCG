@@ -7,6 +7,7 @@ sideMethod = {
 tintSide = {
   0: 0xff0000,
   1: 0x0000ff,
+  2: 0x00ff00,
 };
 
 function getCardStatsByTypeAndSide(type, side) {
