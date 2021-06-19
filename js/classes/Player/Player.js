@@ -38,26 +38,33 @@ class Player extends EnemyPlayer {
 
     let player = this;
     if(card instanceof CardMagic) {
-      card.on("pointerup", function (pointer) {
-        player.useCard(card);
-      });
-    } else {
-      card.on("pointerup", function (pointer) {
-        if (player.canPlay()) {
-          player.board.hasSummoned = true;
+      card.on("pointerdown", function (pointer) {
+        if(player.board.phase.isPre() ||
+           player.board.phase.isPos()) {
           player.useCard(card);
-          card.on("pointerup", function (pointer) {
-            if(this.board.selectedHandCard) {
-                this.board.selectedHandCard.update(card);
-                this.removeHand(this.board.selectedHandCard);
-                this.retireCard(this.board.selectedHandCard);
-                this.board.selectedHandCard = null;
-                this.arrangePlayerHand();
-            }
-          }, player);
         }
       });
+    } else {
+      this.summonedEvent(card);
     }
+  }
+  summonedEvent(card) {
+    let player = this;
+    card.on("pointerdown", function (pointer) {
+      if (player.canPlay()) {
+        player.board.hasSummoned = true;
+        player.useCard(card);
+        card.removeAllListeners();
+        card.on("pointerdown", function (pointer) {
+          if(this.board.selectedHandCard) {
+              this.board.selectedHandCard.update(card);
+              this.retireCard(this.board.selectedHandCard, false);
+              this.board.selectedHandCard = null;
+              this.arrangePlayerHand();
+          }
+        }, player);
+      }
+    });
   }
   canPlay() {
     return this.isAtTurn && !this.board.hasSummoned &&

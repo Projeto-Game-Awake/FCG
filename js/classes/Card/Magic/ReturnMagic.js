@@ -23,6 +23,8 @@ class ReturnMagic extends CardMagic {
         let player = this.parent.getPlayerTurn();
         player.retire.cards.splice(player.retire.cards.indexOf(card),1);
         player.table.push(card);
+        card.reset();
+        player.board.add.existing(card);
         player.board.arrangePlayerTable(player);
     }
 }

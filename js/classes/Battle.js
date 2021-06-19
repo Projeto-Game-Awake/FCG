@@ -1,7 +1,5 @@
 class Battle {
   constructor() {
-    this.cards = [];
-
     //Garantir que exista uma batalha só
     if (this.constructor.instance) {
       return this.constructor.instance;
@@ -27,13 +25,13 @@ class Battle {
   }
 
   round(board) {
-    try {
-      let total1 = board.Player1.table.length;
-      let total2 = board.Player2.table.length;
-      let minor = Math.min(total1, total2);
-      let firstPlayer = board.Player1;
-      let secondPlayer = board.Player2;
-      let msg = "";
+    let total1 = board.Player1.table.length;
+    let total2 = board.Player2.table.length;
+    let minor = Math.min(total1, total2);
+    let firstPlayer = board.Player1;
+    let secondPlayer = board.Player2;
+    let msg = "";
+    try {      
       // Ataca diretamente o líder
       if (total1 != total2) {
         let maxBattle = Math.max(total1, total2);
@@ -46,6 +44,8 @@ class Battle {
       if (msg != "") {
         board.endGame(msg);
       }
+      let firstRemoved = [];
+      let secondRemoved = [];
       for (let i = 0; i < minor; i++) {
         if (
           firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed
@@ -57,24 +57,34 @@ class Battle {
         let first = firstPlayer.table[i];
         let second = secondPlayer.table[i];
 
-        second.stats.hp -= first.stats.attack;
+        second.addHP(-first.stats.attack);
         if (first.stats.speed == second.stats.speed) {
-          first.stats.hp -= second.stats.attack;
+          first.addHP(-second.stats.attack);
         }
         if (second.stats.hp <= 0) {
-          secondPlayer.retireCard(second);
+          secondRemoved.push(second);
         } else if (first.stats.speed != second.stats.speed) {
-          first.stats.hp -= second.stats.attack;
+          first.addHP(-second.stats.attack);
         }
         if (first.stats.hp <= 0) {
-          firstPlayer.retireCard(first);
+          firstRemoved.push(first);
         }
       }
+      for(let first in firstRemoved) {
+        firstPlayer.retireCard(firstRemoved[first]);
+      }
+      for(let second in secondRemoved) {
+        secondPlayer.retireCard(secondRemoved[second]);
+      }
+      
       board.arrangePlayerTable(firstPlayer);
       board.arrangePlayerTable(secondPlayer);
-    } catch {
-      
+    } catch(ex) {
+      console.log(ex);
+      console.log(firstPlayer.table);
+      console.log(secondPlayer.table);
     }
+    board.phase.pos();
   }
   directAttack(playerReciver, playerDealer, minor, maxBattle) {
     for (let i = minor; i < maxBattle; i++) {
@@ -82,6 +92,7 @@ class Battle {
     }
     let msg = "";
     if (playerReciver.hp <= 0) {
+      playerReciver.hp = 0;
       if (playerDealer.table[0].side == 0) {
         msg = "A Luz prevaleceu!";
       } else {

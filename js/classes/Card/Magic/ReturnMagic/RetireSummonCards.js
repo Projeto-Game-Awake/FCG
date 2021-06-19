@@ -11,23 +11,28 @@ class RetireSummonCards extends Phaser.GameObjects.Container {
         let posY = 0;
         for(let card in cards) {
             if(!(cards[card] instanceof CardMagic)) {
-                let clone = cards[card]
-                clone.x = 100 + 80 * posX;
-                clone.y = 100 + 150 * posY;
+                let c = cards[card]
+                c.x = 80 * posX;
+                c.y = 150 * posY;
                 let container = this;
-                clone.on("pointerdown", function() {
+                c.removeAllListeners();
+                c.on("pointerdown", function() {
                     /*for(let retireCard in cards) {
                         cards[retireCard].x = this.x;
                         cards[retireCard].y = 60 * this.row;
                     }*/
-                    this.board.selectedHandCard.update(clone);
+                    this.board.selectedHandCard.update(c);
                     this.removeHand(this.board.selectedHandCard);
                     this.retireCard(this.board.selectedHandCard);
                     this.board.selectedHandCard = null;
                     this.arrangePlayerHand();
-                    container.destroy();
+                    c.removeAllListeners();
+                    this.summonedEvent(c);
+                    container.visible = false;
+
+                    //container.destroy();
                 }, this.parent.Player1);
-                this.add(clone);
+                this.add(c);
                 posX++;
                 if(posX % 3 == 0) {
                     posX = 0;

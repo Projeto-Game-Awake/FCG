@@ -5,8 +5,11 @@ class CardMagic extends CardBase {
     canSelect() {
         if(this.parent.selectedHandCard != null) {
             this.parent.selectedHandCard.y += 20;    
+            if(this.parent.selectedHandCard = this) {
+                return false;
+            }
         }
-        if(this.parent.Player1.table.length > 0) {
+        if(this.parent.getPlayerTurn().table.length > 0) {
             this.y -= 20;
             this.parent.selectedHandCard = this;
         } else {

@@ -3,6 +3,6 @@ class VibrationUpMagic extends CardMagic {
         super(parent,x,y,1);
     }
     update(card) {
-        card.stats.attack++;
+        card.addAttack(1);
     }
 }

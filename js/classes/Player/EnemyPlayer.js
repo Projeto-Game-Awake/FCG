@@ -56,8 +56,12 @@ class EnemyPlayer {
     this.deck.cards.splice(0, times);
     return selectedCards;
   }
-  retireCard(card) {
-    this.table.splice(this.table.indexOf(card), 1);
+  retireCard(card, isTable = true) {
+    if(isTable) {
+      this.table.splice(this.table.indexOf(card), 1);
+    } else {
+      this.hand.splice(this.hand.indexOf(card), 1);
+    }
     this.retire.cards.push(card);
     let retirePosition = this.retire;
     card.move(retirePosition.x, retirePosition.y);
@@ -65,12 +69,12 @@ class EnemyPlayer {
 
     });
   }
-  useCard(card) {
+  useCard(card, callback = null) {
     this.cardUsed = card;
     this.removeHand(card);
     this.table.push(card);
     this.board.arrangePlayerTable(this, function() {
-      card.turn();
+      card.turn(callback);
     });
     this.arrangePlayerHand();
   }

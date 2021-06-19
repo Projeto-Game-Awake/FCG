@@ -90,7 +90,7 @@ class board extends Phaser.Scene {
     );
     let player1LifeBar = new AutoUpdaterTextComponent(
       scene,
-      -(scene.cameras.main.width / 4 - 20),
+      -(scene.cameras.main.width / 4 - 8),
       -(-scene.cameras.main.height / 4 + 20),
       32,
       this.Player1,
@@ -100,7 +100,7 @@ class board extends Phaser.Scene {
     player1LifeBar.setTint(getTintBySide(0));
     let player2LifeBar = new AutoUpdaterTextComponent(
       scene,
-      scene.cameras.main.width / 4 - 20,
+      scene.cameras.main.width / 4 - 28,
       -scene.cameras.main.height / 4 + 20,
       32,
       this.Player2,
@@ -116,6 +116,7 @@ class board extends Phaser.Scene {
     phases.setInteractive();
     phases.on("pointerdown", function() {
       if(!this.phase.isDraw()) {
+        this.children.bringToTop(this.phase);
         this.phase.visible = true;
       }
     },this);
@@ -150,13 +151,14 @@ class board extends Phaser.Scene {
     let p2 = this.Player2;
     p2.doDrawCard(function () {
       let card = p2.selectCard();
-      p2.useCard(card);
-      if (p2.board.currentDepth > 1) {
-        p2.board.phase.battle();
-      }
+      p2.useCard(card, function() {
+        if (p2.board.currentDepth > 1) {
+          p2.board.phase.battle();
+        }
 
-      p2.board.switchPlayer();
-      p2.board.phase.draw();
+        p2.board.switchPlayer();
+        p2.board.phase.draw();
+      });
     });
   }
   getPlayerTurn() {
@@ -168,19 +170,8 @@ class board extends Phaser.Scene {
 
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
+      scene.currentDepth++;
       this.switchPlayer();
-      let battleFunction = function () {
-        scene.phase.battle();
-        //cardUsed.depth = scene.currentDepth++;
-        scene.arrangePlayerTable(playerTurn);
-      };
-
-      /*if (playerTurn.isMain()) {
-        battleFunction();
-      } else {
-        //cardUsed.isHidden = false;
-        //cardUsed.turn(battleFunction);
-      }*/
     }
   }
   arrangePlayerTable(player, callback) {

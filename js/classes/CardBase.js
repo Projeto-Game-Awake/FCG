@@ -42,8 +42,9 @@ class CardBase extends Phaser.GameObjects.Container {
 
     super(parent, x, y, [cardImage, backImage]);
 
-    let statTexts = [];
-    this.statTexts = statTexts;
+    this.type = type;
+    this.side = side;
+    this.statTexts = [];
 
     for (let index = 0; index < statsItems.length; index++) {
       const element = statsItems[index];
@@ -130,5 +131,21 @@ class CardBase extends Phaser.GameObjects.Container {
       })
     );
     timeLine.play();
+  }
+  addHP(hp) {
+    this.stats.hp += hp;
+    try {
+      this.statTexts[2].setText(this.stats.hp);
+    } catch {
+      console.log(this.stats.hp);
+    }
+  }
+  addAttack(attack) {
+    this.stats.attack += attack;
+    this.statTexts[1].setText(this.stats.attack);
+  }
+  reset() {
+    let stats = getCardStatsByTypeAndSide(this.type, this.side);
+    this.addHP(stats.hp);    
   }
 }

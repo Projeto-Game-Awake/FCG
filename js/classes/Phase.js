@@ -17,17 +17,20 @@ class Phase extends Phaser.GameObjects.Container {
 
       this.setDisabledAlpha(preButton);
       this.setDisabledAlpha(battleButton);
+      this.setDisabledAlpha(posButton);
 
       popup.setInteractive();
       popup.on("pointerdown", function() {
         this.visible = false;
       },this);
 
+      this.preButton = preButton;
       preButton.setInteractive();
       preButton.on("pointerdown", function() {
         this.visible = false;
       },this);
 
+      this.battleButton = battleButton;
       battleButton.setInteractive();
       battleButton.on("pointerdown", function() {
         if(battleButton.alpha == 1) {
@@ -38,14 +41,10 @@ class Phase extends Phaser.GameObjects.Container {
         this.visible = false;
       },this);
 
+      this.posButton = posButton;
       posButton.setInteractive();
       posButton.on("pointerdown", function() {
-        if(posButton.alpha == 1) {
-            parent.phase.pos();
-            this.setDisabledAlpha(preButton);
-            this.setDisabledAlpha(battleButton);
-            this.setDisabledAlpha(posButton);
-        }
+        this.pos();
         this.visible = false;
       },this);
 
@@ -59,6 +58,7 @@ class Phase extends Phaser.GameObjects.Container {
       parent.add.existing(this);
       this.parent = parent;
       this.visible = false;
+      this.value = 0;
       this.draw();
     }
     setEnabledAlpha(buttons) {
@@ -71,6 +71,9 @@ class Phase extends Phaser.GameObjects.Container {
     }
     draw() {
         this.value = Phase.state.draw;
+        if(this.parent.currentDepth > 1) {
+            this.setEnabledAlpha([this.battleButton,this.posButton]);
+        }
     }
     isDraw() {
         return this.value == Phase.state.draw;
@@ -90,6 +93,12 @@ class Phase extends Phaser.GameObjects.Container {
     }
     pos() {
         this.value = Phase.state.pos;
+
+        if(this.posButton.alpha == 1) {
+            this.setDisabledAlpha(this.preButton);
+            this.setDisabledAlpha(this.battleButton);
+            this.setDisabledAlpha(this.posButton);
+        }
         this.visible = false;
     }
     isPos() {

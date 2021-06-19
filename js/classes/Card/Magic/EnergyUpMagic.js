@@ -3,6 +3,6 @@ class EnergyUpMagic extends CardMagic {
         super(parent,x,y,2);
     }
     update(card) {
-        card.stats.hp++;
+        card.addHP(1);
     }
 }
