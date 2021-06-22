@@ -11,7 +11,7 @@ class CardBase extends Phaser.GameObjects.Container {
     ).setTint(tintColor);
 
     let backImage = new Phaser.GameObjects.Sprite(parent, 0, 0, "back").setTint(
-      tintColor
+      getTintBySide(1)
     );
 
     let statPosByType = {
@@ -42,8 +42,9 @@ class CardBase extends Phaser.GameObjects.Container {
 
     super(parent, x, y, [cardImage, backImage]);
 
-    let statTexts = [];
-    this.statTexts = statTexts;
+    this.type = type;
+    this.side = side;
+    this.statTexts = [];
 
     for (let index = 0; index < statsItems.length; index++) {
       const element = statsItems[index];
@@ -70,17 +71,21 @@ class CardBase extends Phaser.GameObjects.Container {
     this.stats = stats;
     this.parent.add.existing(this);
 
+    this.setSize(66,120);
     this.setInteractive(
-      new Phaser.Geom.Circle(0, 0, 60),
-      Phaser.Geom.Circle.Contains
+      new Phaser.Geom.Rectangle(0, 0, 66, 120),
+      Phaser.Geom.Rectangle.Contains
     );
 
     this.visible = false;
   }
-
+  canSelect() {
+    return true;
+  }/*
   registerClick(callback) {
-    card.on("pointerup", callback);
-  }
+    //card.on("pointerup", callback);
+    cardImage.on("pointerup", callback);
+  }*/
 
   showBack() {
     this.isShowingFace = false;
@@ -109,7 +114,7 @@ class CardBase extends Phaser.GameObjects.Container {
     timeLine.play();
   }
 
-  turn(callback) {
+  turn(callback = null) {
     let card = this;
     let timeLine = this.parent.tweens.createTimeline();
     timeLine.add(CardAnimations.startFlip(card, card.x, card.y));
@@ -126,5 +131,21 @@ class CardBase extends Phaser.GameObjects.Container {
       })
     );
     timeLine.play();
+  }
+  addHP(hp) {
+    this.stats.hp += hp;
+    try {
+      this.statTexts[2].setText(this.stats.hp);
+    } catch {
+      console.log(this.stats.hp);
+    }
+  }
+  addAttack(attack) {
+    this.stats.attack += attack;
+    this.statTexts[1].setText(this.stats.attack);
+  }
+  reset() {
+    let stats = getCardStatsByTypeAndSide(this.type, this.side);
+    this.addHP(stats.hp);    
   }
 }

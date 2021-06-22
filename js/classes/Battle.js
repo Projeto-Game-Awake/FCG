@@ -1,7 +1,5 @@
 class Battle {
   constructor() {
-    this.cards = [];
-
     //Garantir que exista uma batalha só
     if (this.constructor.instance) {
       return this.constructor.instance;
@@ -21,8 +19,8 @@ class Battle {
     if (player.board.currentDepth > 1) {
       this.round(player.board);
     }
-    if (player.board.phase != board.Phase.end) {
-      player.board.phase = board.Phase.draw;
+    if (!player.board.phase.isEnd()) {
+      player.board.phase.draw();
     }
   }
 
@@ -33,49 +31,60 @@ class Battle {
     let firstPlayer = board.Player1;
     let secondPlayer = board.Player2;
     let msg = "";
-    // Ataca diretamente o líder
-    if (total1 != total2) {
-      let maxBattle = Math.max(total1, total2);
-      if (total1 < total2) {
-        msg = this.directAttack(board.Player1, board.Player2, minor, maxBattle);
-      } else {
-        msg = this.directAttack(board.Player2, board.Player1, minor, maxBattle);
+    try {      
+      // Ataca diretamente o líder
+      if (total1 != total2) {
+        let maxBattle = Math.max(total1, total2);
+        if (total1 < total2) {
+          msg = this.directAttack(board.Player1, board.Player2, minor, maxBattle);
+        } else {
+          msg = this.directAttack(board.Player2, board.Player1, minor, maxBattle);
+        }
       }
-    }
-    if (msg != "") {
-      board.endGame(msg);
-    }
-    for (let i = 0; i < minor; i++) {
-      if (
-        firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed
-      ) {
-        let temp = firstPlayer;
-        firstPlayer = secondPlayer;
-        secondPlayer = temp;
+      if (msg != "") {
+        board.endGame(msg);
       }
-      let first = firstPlayer.table[i];
-      let second = secondPlayer.table[i];
+      let firstRemoved = [];
+      let secondRemoved = [];
+      for (let i = 0; i < minor; i++) {
+        if (
+          firstPlayer.table[i].stats.speed < secondPlayer.table[i].stats.speed
+        ) {
+          let temp = firstPlayer;
+          firstPlayer = secondPlayer;
+          secondPlayer = temp;
+        }
+        let first = firstPlayer.table[i];
+        let second = secondPlayer.table[i];
 
-      second.stats.hp -= first.stats.attack;
-      if (first.stats.speed == second.stats.speed) {
-        first.stats.hp -= second.stats.attack;
+        second.addHP(-first.stats.attack);
+        if (first.stats.speed == second.stats.speed) {
+          first.addHP(-second.stats.attack);
+        }
+        if (second.stats.hp <= 0) {
+          secondRemoved.push(second);
+        } else if (first.stats.speed != second.stats.speed) {
+          first.addHP(-second.stats.attack);
+        }
+        if (first.stats.hp <= 0) {
+          firstRemoved.push(first);
+        }
       }
-      if (second.stats.hp <= 0) {
-        this.retireCard(secondPlayer, second);
-      } else if (first.stats.speed != second.stats.speed) {
-        first.stats.hp -= second.stats.attack;
+      for(let first in firstRemoved) {
+        firstPlayer.retireCard(firstRemoved[first]);
       }
-      if (first.stats.hp <= 0) {
-        this.retireCard(firstPlayer, first);
+      for(let second in secondRemoved) {
+        secondPlayer.retireCard(secondRemoved[second]);
       }
+      
+      board.arrangePlayerTable(firstPlayer);
+      board.arrangePlayerTable(secondPlayer);
+    } catch(ex) {
+      console.log(ex);
+      console.log(firstPlayer.table);
+      console.log(secondPlayer.table);
     }
-    board.arrangePlayerTable(firstPlayer);
-    board.arrangePlayerTable(secondPlayer);
-  }
-  retireCard(player, card) {
-    player.table.splice(player.table.indexOf(card), 1);
-    let retirePosition = player.retire;
-    card.move(retirePosition.x, retirePosition.y);
+    board.phase.pos();
   }
   directAttack(playerReciver, playerDealer, minor, maxBattle) {
     for (let i = minor; i < maxBattle; i++) {
@@ -83,6 +92,7 @@ class Battle {
     }
     let msg = "";
     if (playerReciver.hp <= 0) {
+      playerReciver.hp = 0;
       if (playerDealer.table[0].side == 0) {
         msg = "A Luz prevaleceu!";
       } else {
