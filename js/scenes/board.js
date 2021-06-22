@@ -21,10 +21,7 @@ class board extends Phaser.Scene {
       frameWidth: 60,
       frameHeight: 60,
     });
-    this.load.spritesheet("fields", "assets/spritesheets/fields.png", {
-      frameWidth: 60,
-      frameHeight: 60,
-    });
+
     this.load.spritesheet("lights", "assets/spritesheets/lights.png", {
       frameWidth: 60,
       frameHeight: 60,
@@ -38,6 +35,7 @@ class board extends Phaser.Scene {
 
     this.load.image("cardbase", "assets/spritesheets/cardbase.png");
     this.load.image("back", "assets/spritesheets/back.png");
+    this.load.image("field", "assets/spritesheets/field.png");
   }
   create() {
     scene = this;
@@ -80,28 +78,31 @@ class board extends Phaser.Scene {
     this.hud.addItem(player1LifeBar);
     this.hud.addItem(player2LifeBar);
 
-    let boardItemSize = 70;
+    let deltaX = 5;
+    let deltaY = 5;
+    let boardItemSizeX = 66 * 0.8 + deltaX;
+    let boardItemSizeY = 118 * 0.8 + deltaY;
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
       for (let j = 0; j < 2; j++) {
         this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2),
+          boardItemSizeX * (i + 2),
+          boardItemSizeY * (j + 2),
           2
         );
       }
 
       this.Fields[i][2] = new Field(
-        boardItemSize * (i + 2),
-        boardItemSize * (2 + 2),
+        boardItemSizeX * (i + 2),
+        boardItemSizeY * (2 + 2),
         1
       );
 
       for (let j = 3; j < 5; j++) {
         this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2)
+          boardItemSizeX * (i + 2),
+          boardItemSizeY * (j + 2)
         );
       }
     }
