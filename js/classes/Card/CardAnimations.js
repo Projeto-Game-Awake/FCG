@@ -1,5 +1,17 @@
 class CardAnimations {
   constructor() {}
+  static gotoAndScale(image, x, y, scale, callback) {
+    return {
+      targets: image,
+      x: x,
+      y: y,
+      scale: scale,
+      duration: 150,
+      ease: "Linear",
+      onComplete: callback,
+    };
+  }
+
   static goto(image, x, y, callback) {
     return {
       targets: image,
