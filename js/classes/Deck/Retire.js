@@ -1,27 +1,39 @@
-class Field extends Phaser.GameObjects.Container {
-  constructor(parent, x, y, type = 0, scale = 1) {
+class Retire extends Phaser.GameObjects.Container {
+  constructor(parent, x, y, side, type = 0) {
     let fieldImage = new Phaser.GameObjects.Sprite(parent, 0, 0, "field");
+
+    let labelByType = {
+      0: "Baralho",
+      1: "Repouso",
+      2: "Expulso",
+    };
 
     let label = new Phaser.GameObjects.BitmapText(
       parent,
-      0,
+      -30,
       0,
       "hud",
-      "",
-      10,
-      Phaser.GameObjects.BitmapText.ALIGN_CENTER
+      labelByType[type],
+      13,
+      Phaser.GameObjects.BitmapText.ALIGN_LEFT
     );
 
     super(parent, x, y, [fieldImage, label]);
 
     this.label = label;
     this.fieldImage = fieldImage;
+    this.cards = [];
 
     let tintColor = this.fieldTintColorByType(type);
     fieldImage.setTint(tintColor);
 
-    this.scale = scale;
     parent.add.existing(this);
+
+    this.setSize(66, 120);
+    this.setInteractive(
+      new Phaser.Geom.Rectangle(0, 0, 66, 120),
+      Phaser.Geom.Rectangle.Contains
+    );
   }
 
   fieldTintColorByType(type) {
@@ -36,7 +48,12 @@ class Field extends Phaser.GameObjects.Container {
     return tintType[type];
   }
 
+  addCard(card) {
+    this.cards.push(card);
+  }
+
   setLabel(label) {
+    console.log("----setlabel---", this);
     this.label.text = label;
   }
 }

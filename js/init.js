@@ -4,7 +4,7 @@ var gameConfig = {
   scale: {
     parent: "FCG-board",
     width: 800,
-    height: 600,
+    height: 700,
   },
   scene: [board],
 };
