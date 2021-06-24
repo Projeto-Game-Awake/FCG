@@ -15,7 +15,5 @@ class Deck extends Retire {
       new VibrationUpMagic(parent, x, y),
       new EnergyUpMagic(parent, x, y),
     ];
-
-    this.setLabel("Baralho");
   }
 }

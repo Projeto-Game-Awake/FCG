@@ -1,13 +1,19 @@
 class Retire extends Phaser.GameObjects.Container {
-  constructor(parent, x, y, type = 0) {
+  constructor(parent, x, y, side, type = 0) {
     let fieldImage = new Phaser.GameObjects.Sprite(parent, 0, 0, "field");
+
+    let labelByType = {
+      0: "Baralho",
+      1: "Repouso",
+      2: "Expulso",
+    };
 
     let label = new Phaser.GameObjects.BitmapText(
       parent,
       -30,
       0,
       "hud",
-      "Repouso",
+      labelByType[type],
       13,
       Phaser.GameObjects.BitmapText.ALIGN_LEFT
     );
@@ -16,6 +22,7 @@ class Retire extends Phaser.GameObjects.Container {
 
     this.label = label;
     this.fieldImage = fieldImage;
+    this.cards = [];
 
     let tintColor = this.fieldTintColorByType(type);
     fieldImage.setTint(tintColor);
@@ -41,7 +48,12 @@ class Retire extends Phaser.GameObjects.Container {
     return tintType[type];
   }
 
+  addCard(card) {
+    this.cards.push(card);
+  }
+
   setLabel(label) {
+    console.log("----setlabel---", this);
     this.label.text = label;
   }
 }

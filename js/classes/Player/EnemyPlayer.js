@@ -7,6 +7,7 @@ class EnemyPlayer {
 
     this.hp = 10;
     this.startX = 180;
+    this.initialHandPosX = 240;
 
     this.setPosition();
 
@@ -23,7 +24,7 @@ class EnemyPlayer {
     startY += step;
     this.retire = new Retire(this.board, x, startY, side, 1);
     startY += step;
-    this.deck = new Deck(this.board, x, startY, side);
+    this.deck = new Deck(this.board, x, startY, side, 0);
 
     this.suffleCard();
   }
@@ -32,7 +33,7 @@ class EnemyPlayer {
     this.row = 3;
   }
   getStep() {
-    return -60;
+    return -120;
   }
   isMain() {
     return false;
@@ -57,29 +58,27 @@ class EnemyPlayer {
     return selectedCards;
   }
   retireCard(card, isTable = true) {
-    if(isTable) {
+    if (isTable) {
       this.table.splice(this.table.indexOf(card), 1);
     } else {
       this.hand.splice(this.hand.indexOf(card), 1);
     }
     this.retire.cards.push(card);
     let retirePosition = this.retire;
-    card.move(retirePosition.x, retirePosition.y);
-    card.on("pointerup", function (pointer) {
-
-    });
+    card.move(retirePosition.x, retirePosition.y, 1.0);
+    card.on("pointerup", function (pointer) {});
   }
   useCard(card, callback = null) {
     this.cardUsed = card;
     this.removeHand(card);
     this.table.push(card);
-    this.board.arrangePlayerTable(this, function() {
+    this.board.arrangePlayerTable(this, function () {
       card.turn(callback);
     });
     this.arrangePlayerHand();
   }
   removeHand(card) {
-    this.hand.splice(this.hand.indexOf(card),1);
+    this.hand.splice(this.hand.indexOf(card), 1);
   }
   doDrawCard(callback = null) {
     if (this.board.phase.isDraw()) {
@@ -100,24 +99,24 @@ class EnemyPlayer {
       return;
     }
 
-    let x = 240;
+    let x = this.initialHandPosX;
 
     let moveLeft = (this.hand.length - 1) * 30;
     let card = 0;
     for (; card < this.hand.length - 1; card++) {
-      this.hand[card].move(x - moveLeft, this.handRow * 60);
+      this.hand[card].move(x - moveLeft, this.handRow * 60, 1.0);
       moveLeft -= 60;
     }
 
-    this.hand[card].move(x - moveLeft, this.handRow * 60, callback);
+    this.hand[card].move(x - moveLeft, this.handRow * 60, 1.0, callback);
   }
   selectCard() {
     let currentCards = this.hand;
-    while(currentCards.length > 0) {
+    while (currentCards.length > 0) {
       let index = Phaser.Math.Between(0, currentCards.length - 1);
       let card = this.hand[index];
-      if(card instanceof CardMagic) {
-        currentCards.splice(index,1);
+      if (card instanceof CardMagic) {
+        currentCards.splice(index, 1);
       } else {
         return card;
       }

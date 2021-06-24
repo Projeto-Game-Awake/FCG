@@ -10,6 +10,7 @@ class board extends Phaser.Scene {
     this.phase = null;
     this.selectedHandCard = null;
     this.hasSummoned = false;
+    this.boardScale = 0.7;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -40,40 +41,47 @@ class board extends Phaser.Scene {
     this.load.image("back", "assets/spritesheets/back.png");
     this.load.image("field", "assets/spritesheets/field.png");
   }
-  create() {
-    General.scene = "FCG-board";
-    scene = General.getCurrentScene();
 
-    let boardItemSize = 70;
+  drawBoard(centerX = 0, centerY = 0) {
+    let boardItemSizeX = 50;
+    let boardItemSizeY = 94;
+    let deltaX = 15;
+    let deltaY = 20;
+    let scale = this.boardScale;
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
       for (let j = 0; j < 2; j++) {
         this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2),
-          2
+          scene,
+          centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
+          centerY + (boardItemSizeY + deltaY) * (j + 2) * scale,
+          2,
+          scale
         );
       }
 
       this.Fields[i][2] = new Field(
-        boardItemSize * (i + 2),
-        boardItemSize * (2 + 2),
-        1
+        scene,
+        centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
+        centerY + (boardItemSizeY + deltaY) * (2 + 2) * scale,
+        1,
+        scale
       );
 
       for (let j = 3; j < 5; j++) {
         this.Fields[i][j] = new Field(
-          boardItemSize * (i + 2),
-          boardItemSize * (j + 2)
+          scene,
+          centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
+          centerY + (boardItemSizeY + deltaY) * (j + 2) * scale,
+          0,
+          scale
         );
       }
     }
+  }
 
-    let isPlayerTurn = Phaser.Math.Between(0, 1) >= 0;
-    this.Player1 = new Player(500, 420, 0, true);
-    this.Player2 = new EnemyPlayer(60, 60, 1, false);
-
+  drawHUD() {
     const screenCenterX =
       scene.cameras.main.worldView.x + scene.cameras.main.width / 2;
     const screenCenterY =
@@ -108,6 +116,17 @@ class board extends Phaser.Scene {
 
     this.hud.addItem(player1LifeBar);
     this.hud.addItem(player2LifeBar);
+  }
+  create() {
+    General.scene = "FCG-board";
+    scene = General.getCurrentScene();
+    this.drawBoard(100, 10);
+
+    let isPlayerTurn = Phaser.Math.Between(0, 1) >= 0;
+    this.Player1 = new Player(500, 420, 0, true);
+    this.Player2 = new EnemyPlayer(60, 60, 1, false);
+
+    this.drawHUD();
 
     let phases = this.add.sprite(60, 450, "phase");
     this.phase = new Phase(this, 120, 300);
@@ -182,11 +201,16 @@ class board extends Phaser.Scene {
     let moveLeft = (player.table.length - 1) * 30;
     let card = 0;
     for (; card < player.table.length - 1; card++) {
-      player.table[card].move(x - moveLeft, player.row * 60);
+      player.table[card].move(x - moveLeft, player.row * 60, this.boardScale);
       moveLeft -= 60;
     }
     let board = this;
-    player.table[card].move(x - moveLeft, player.row * 60, callback);
+    player.table[card].move(
+      x - moveLeft,
+      player.row * 60,
+      this.boardScale,
+      callback
+    );
   }
   selectStartHand(player) {
     player.hand = player.popDeck(3);

@@ -44,6 +44,7 @@ class CardBase extends Phaser.GameObjects.Container {
 
     this.type = type;
     this.side = side;
+    this.cardScale = 1.0;
     this.statTexts = [];
 
     for (let index = 0; index < statsItems.length; index++) {
@@ -71,7 +72,7 @@ class CardBase extends Phaser.GameObjects.Container {
     this.stats = stats;
     this.parent.add.existing(this);
 
-    this.setSize(66,120);
+    this.setSize(66, 120);
     this.setInteractive(
       new Phaser.Geom.Rectangle(0, 0, 66, 120),
       Phaser.Geom.Rectangle.Contains
@@ -81,11 +82,7 @@ class CardBase extends Phaser.GameObjects.Container {
   }
   canSelect() {
     return true;
-  }/*
-  registerClick(callback) {
-    //card.on("pointerup", callback);
-    cardImage.on("pointerup", callback);
-  }*/
+  }
 
   showBack() {
     this.isShowingFace = false;
@@ -107,9 +104,11 @@ class CardBase extends Phaser.GameObjects.Container {
     });
   }
 
-  move(x, y, callback) {
+  move(x, y, scale = 1, callback) {
     let timeLine = this.parent.tweens.createTimeline();
-    timeLine.add(CardAnimations.goto(this, x, y, callback));
+
+    timeLine.add(CardAnimations.gotoAndScale(this, x, y, scale, callback));
+    this.cardScale = scale;
 
     timeLine.play();
   }
@@ -119,7 +118,7 @@ class CardBase extends Phaser.GameObjects.Container {
     let timeLine = this.parent.tweens.createTimeline();
     timeLine.add(CardAnimations.startFlip(card, card.x, card.y));
     timeLine.add(
-      CardAnimations.endFlip(card, card.x, card.y, function () {
+      CardAnimations.endFlip(card, card.x, card.y, this.cardScale, function () {
         if (card.isShowingFace) {
           card.showBack();
         } else {
@@ -146,6 +145,6 @@ class CardBase extends Phaser.GameObjects.Container {
   }
   reset() {
     let stats = getCardStatsByTypeAndSide(this.type, this.side);
-    this.addHP(stats.hp);    
+    this.addHP(stats.hp);
   }
 }
