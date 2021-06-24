@@ -1,6 +1,6 @@
 class Deck extends Retire {
   constructor(parent, x, y, side = 0, type = 0) {
-    super(parent,x,y,side,type);
+    super(parent, x, y, side, type);
     this.cards = [
       new CardBase(parent, x, y, 0, side),
       new CardBase(parent, x, y, 0, side),
@@ -15,5 +15,7 @@ class Deck extends Retire {
       new VibrationUpMagic(parent, x, y),
       new EnergyUpMagic(parent, x, y),
     ];
+
+    this.setLabel("Baralho");
   }
 }
