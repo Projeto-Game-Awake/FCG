@@ -6,6 +6,6 @@ var gameConfig = {
     width: 800,
     height: 700,
   },
-  scene: [board],
+  scene: [board,RetireSummonCards],
 };
 var game = new Phaser.Game(gameConfig);

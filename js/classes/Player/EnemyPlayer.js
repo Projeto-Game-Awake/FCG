@@ -9,6 +9,8 @@ class EnemyPlayer {
     this.startX = 180;
     this.initialHandPosX = 240;
 
+    this.stack = [];
+
     this.setPosition();
 
     this.hand = [];
@@ -69,13 +71,19 @@ class EnemyPlayer {
     card.on("pointerup", function (pointer) {});
   }
   useCard(card, callback = null) {
-    this.cardUsed = card;
-    this.removeHand(card);
-    this.table.push(card);
-    this.board.arrangePlayerTable(this, function () {
-      card.turn(callback);
-    });
-    this.arrangePlayerHand();
+    if(card.canUse()) {
+      if(card instanceof CardMagic) {
+        card.use();
+      } else {
+        this.cardUsed = card;
+        this.removeHand(card);
+        this.table.push(card);
+        this.board.arrangePlayerTable(this, function () {
+          card.turn(callback);
+        });
+        this.arrangePlayerHand();
+      }
+    }
   }
   removeHand(card) {
     this.hand.splice(this.hand.indexOf(card), 1);
@@ -116,6 +124,7 @@ class EnemyPlayer {
       let index = Phaser.Math.Between(0, currentCards.length - 1);
       let card = this.hand[index];
       if (card instanceof CardMagic) {
+        this.stack.push(card);
         currentCards.splice(index, 1);
       } else {
         return card;

@@ -83,7 +83,12 @@ class CardBase extends Phaser.GameObjects.Container {
   canSelect() {
     return true;
   }
-
+  canUse() {
+    return true;
+  }
+  use() {
+    
+  }
   showBack() {
     this.isShowingFace = false;
     this.visible = true;
@@ -145,6 +150,8 @@ class CardBase extends Phaser.GameObjects.Container {
   }
   reset() {
     let stats = getCardStatsByTypeAndSide(this.type, this.side);
-    this.addHP(stats.hp);
+    let hp = this.stats.hp;
+    this.stats.hp = 0;
+    this.addHP(hp);
   }
 }

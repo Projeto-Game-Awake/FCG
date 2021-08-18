@@ -1,6 +1,6 @@
 class board extends Phaser.Scene {
   constructor() {
-    super("FCG-board");
+    super("main");
 
     this.Fields = [];
     this.Battle = new Battle();
@@ -118,7 +118,7 @@ class board extends Phaser.Scene {
     this.hud.addItem(player2LifeBar);
   }
   create() {
-    General.scene = "FCG-board";
+    General.scene = "main";
     scene = General.getCurrentScene();
     this.drawBoard(100, 10);
 
@@ -169,6 +169,9 @@ class board extends Phaser.Scene {
     let p2 = this.Player2;
     p2.doDrawCard(function () {
       let card = p2.selectCard();
+      for(let i=0;i<p2.stack.length;i++) {
+        p2.useCard(p2.stack[i], function () {});
+      }
       p2.useCard(card, function () {
         if (p2.board.currentDepth > 1) {
           p2.board.phase.battle();
@@ -189,7 +192,9 @@ class board extends Phaser.Scene {
     let playerTurn = this.getPlayerTurn();
     if (playerTurn.hasPlayed) {
       scene.currentDepth++;
-      this.switchPlayer();
+      setTimeout(function() {
+        scene.switchPlayer();
+      }, 1);
     }
   }
   arrangePlayerTable(player, callback) {
@@ -213,11 +218,38 @@ class board extends Phaser.Scene {
     );
   }
   selectStartHand(player) {
-    player.hand = player.popDeck(3);
+    player.hand = player.popDeck(5);
     player.arrangePlayerHand(null);
   }
   endGame(msg) {
     alert(msg);
     this.phase.end();
+  }
+
+  createWindow(func)
+  {
+      var x = Phaser.Math.Between(400, 600);
+      var y = Phaser.Math.Between(64, 128);
+
+      var handle = 'returnCard';
+
+      var win = this.add.zone(x, y, func.WIDTH, func.HEIGHT).setInteractive().setOrigin(0);
+
+      var demo = new func(handle, win);
+
+      try {
+        let s = this.scene.add(handle, demo, true);
+        this.scene.bringToTop(s);
+      } catch {
+
+      }
+  }
+
+  resize (width, height)
+  {
+      if (width === undefined) { width = this.game.config.width; }
+      if (height === undefined) { height = this.game.config.height; }
+
+      this.cameras.resize(width, height);
   }
 }
