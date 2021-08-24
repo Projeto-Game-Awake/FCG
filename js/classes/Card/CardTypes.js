@@ -1,3 +1,7 @@
+cardSide = [
+  "light",
+  "shadow"
+]
 sideMethod = {
   0: getLightCardTypes,
   1: getShadowCardTypes,

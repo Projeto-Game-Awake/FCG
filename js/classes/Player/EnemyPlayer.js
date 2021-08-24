@@ -1,9 +1,10 @@
 class EnemyPlayer {
-  constructor(x, y, side = 0, isAtTurn) {
+  constructor(x, y, side = 0, portal, isAtTurn) {
     this.board = General.getCurrentScene();
     this.x = x;
     this.y = y;
     this.side = side;
+    this.portal = portal;
 
     this.hp = 10;
     this.startX = 180;
@@ -30,6 +31,11 @@ class EnemyPlayer {
 
     this.suffleCard();
   }
+  startTurn() {
+    for(let i=0;i<this.table.length;i++) {
+      this.table[i].hasMoved = false;
+    }
+  }
   setPosition() {
     this.handRow = 1;
     this.row = 3;
@@ -39,6 +45,51 @@ class EnemyPlayer {
   }
   isMain() {
     return false;
+  }
+  showMovementArea(player,card) {
+    if(card.hasMoved) {
+      return;
+    }
+    card.movebles = player.doMovement(card);
+  }
+  doCardHandle(player,card) {
+    for(let i=0;i<player.table.length;i++) {
+      this.doMovement(player.table[i]);
+    }
+    this.doMovement(card);
+    return card.tableSprite;
+  }
+  doMovement(card) {
+    let x = card.posX - this.board.jovemCoords.x;
+    let y = card.posY - this.board.jovemCoords.y;
+    
+    let movement = 0;
+
+    if(x >= 2) {
+      card.tableSprite.x -= 128;
+      return [];
+    } else if(x <= -2) {
+      card.tableSprite.x += 128;
+      return [];
+    } else if(x == 1) {
+      card.tableSprite.x -= 64;
+      movement++;
+    } else if(x == -1) {
+      card.tableSprite.x += 64;
+      movement++;
+    } 
+
+    if(y >= 2) {
+      card.tableSprite.y -= 64 * (2 - movement);
+    } else if(y <= -2) {
+      card.tableSprite.y += 64 * (2 - movement);
+    } else if(y == 1) {
+      card.tableSprite.y -= 64;
+    } else if(y == -1) {
+      card.tableSprite.y += 64;
+    }
+
+    return [];
   }
   suffleCard() {
     let newOrder = [];
@@ -77,16 +128,16 @@ class EnemyPlayer {
       } else {
         this.cardUsed = card;
         this.removeHand(card);
+        card.drawSprite(this);
         this.table.push(card);
-        this.board.arrangePlayerTable(this, function () {
-          card.turn(callback);
-        });
         this.arrangePlayerHand();
+        card.turn(callback);
       }
     }
   }
   removeHand(card) {
     this.hand.splice(this.hand.indexOf(card), 1);
+    card.hide();
   }
   doDrawCard(callback = null) {
     if (this.board.phase.isDraw()) {

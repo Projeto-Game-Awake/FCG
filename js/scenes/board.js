@@ -10,7 +10,7 @@ class board extends Phaser.Scene {
     this.phase = null;
     this.selectedHandCard = null;
     this.hasSummoned = false;
-    this.boardScale = 0.7;
+    this.boardScale = 1;
   }
   preload() {
     this.load.spritesheet("decks", "assets/spritesheets/decks.png", {
@@ -18,13 +18,13 @@ class board extends Phaser.Scene {
       frameHeight: 60,
     });
 
-    this.load.spritesheet("lights", "assets/spritesheets/lights.png", {
-      frameWidth: 60,
-      frameHeight: 60,
+    this.load.spritesheet("light", "assets/spritesheets/light.png", {
+      frameWidth: 64,
+      frameHeight: 64,
     });
-    this.load.spritesheet("shadows", "assets/spritesheets/shadows.png", {
-      frameWidth: 60,
-      frameHeight: 60,
+    this.load.spritesheet("shadow", "assets/spritesheets/shadow.png", {
+      frameWidth: 64,
+      frameHeight: 64,
     });
     this.load.spritesheet("phase", "assets/spritesheets/phase.png", {
       frameWidth: 60,
@@ -33,6 +33,22 @@ class board extends Phaser.Scene {
     this.load.spritesheet("phases", "assets/spritesheets/phases.png", {
       frameWidth: 173,
       frameHeight: 75,
+    });
+    this.load.spritesheet("portal", "assets/spritesheets/portal.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet("jovem", "assets/spritesheets/jovem.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet("pc", "assets/spritesheets/pc.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet("plot", "assets/spritesheets/plot.png", {
+      frameWidth: 64,
+      frameHeight: 64,
     });
 
     this.load.bitmapFont("hud", "assets/hud.png", "assets/hud.fnt");
@@ -43,42 +59,74 @@ class board extends Phaser.Scene {
   }
 
   drawBoard(centerX = 0, centerY = 0) {
-    let boardItemSizeX = 50;
-    let boardItemSizeY = 94;
-    let deltaX = 15;
-    let deltaY = 20;
-    let scale = this.boardScale;
+    this.centerX = centerX;
+    this.centerY = centerY;
+    this.boardItemSizeX = 64;
+    this.boardItemSizeY = 64;
 
     for (let i = 0; i < 5; i++) {
       this.Fields[i] = [];
-      for (let j = 0; j < 2; j++) {
-        this.Fields[i][j] = new Field(
+      for (let j = 0; j < 5; j++) {
+        let coords = this.getTablePosition(i,j);
+        this.Fields[i][j] = new Plot(
           scene,
-          centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
-          centerY + (boardItemSizeY + deltaY) * (j + 2) * scale,
+          coords.x,
+          coords.y,
           2,
-          scale
-        );
-      }
-
-      this.Fields[i][2] = new Field(
-        scene,
-        centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
-        centerY + (boardItemSizeY + deltaY) * (2 + 2) * scale,
-        1,
-        scale
-      );
-
-      for (let j = 3; j < 5; j++) {
-        this.Fields[i][j] = new Field(
-          scene,
-          centerX + (boardItemSizeX + deltaX) * (i + 2) * scale,
-          centerY + (boardItemSizeY + deltaY) * (j + 2) * scale,
-          0,
-          scale
+          this.boardScale
         );
       }
     }
+
+    this.pcX = Phaser.Math.Between(0,4);
+    this.pcY = Phaser.Math.Between(0,3);
+
+    let coords = this.getTablePosition(this.pcX,this.pcY);
+    this.pc = this.add.sprite(
+      coords.x,
+      coords.y,
+      "pc");
+
+    coords = this.getTablePosition(this.pcX,this.pcY+1);
+    this.jovem = this.add.sprite(
+      coords.x,
+      coords.y,
+      "jovem");
+
+    this.jovemCoords = {x:this.pcX,y:this.pcY+1};
+
+    let lightX = this.pcX;
+    let lightY = this.pcY;
+    while(lightX == this.pcX && (
+      lightY == this.pcY || lightY == this.pcY + 1)) {
+        lightX = Phaser.Math.Between(0,4);
+        lightY = Phaser.Math.Between(0,3);
+    }
+
+    coords = this.getTablePosition(lightX,lightY);
+    let portalPlayer1 = this.add.sprite(
+      coords.x,
+      coords.y,
+      "portal", 1);
+    portalPlayer1.alpha = 0.5;
+    this.Player1 = new Player(500, 420, 0, {x:lightX,y:lightY}, true);
+
+    let shadowX = this.pcX;
+    let shadowY = this.pcY;
+    while(shadowX == this.pcX && (
+      shadowY == this.pcY || shadowY == this.pcY + 1) ||
+      shadowX == lightX && shadowY == lightY) {
+        shadowX = Phaser.Math.Between(0,4);
+        shadowY = Phaser.Math.Between(0,3);
+    }
+
+    coords = this.getTablePosition(shadowX,shadowY);
+    let portalPlayer2 = this.add.sprite(
+      coords.x,
+      coords.y,
+      "portal", 0);
+    portalPlayer2.alpha = 0.5;
+    this.Player2 = new EnemyPlayer(60, 60, 1, {x:shadowX,y:shadowY}, false);
   }
 
   drawHUD() {
@@ -120,11 +168,9 @@ class board extends Phaser.Scene {
   create() {
     General.scene = "main";
     scene = General.getCurrentScene();
-    this.drawBoard(100, 10);
+    this.drawBoard(30, 60);
 
     let isPlayerTurn = Phaser.Math.Between(0, 1) >= 0;
-    this.Player1 = new Player(500, 420, 0, true);
-    this.Player2 = new EnemyPlayer(60, 60, 1, false);
 
     this.drawHUD();
 
@@ -162,7 +208,10 @@ class board extends Phaser.Scene {
     this.Player2.hasPlayed = false;
 
     if (this.Player2.isAtTurn) {
+      this.Player2.startTurn();
       this.doNPCTurn();
+    } else {
+      this.Player1.startTurn();
     }
   }
   doNPCTurn() {
@@ -198,7 +247,7 @@ class board extends Phaser.Scene {
     }
   }
   arrangePlayerTable(player, callback) {
-    if (player.table.length == 0) {
+    /*if (player.table.length == 0) {
       return;
     }
     let battle = this.Battle;
@@ -215,7 +264,7 @@ class board extends Phaser.Scene {
       player.row * 60,
       this.boardScale,
       callback
-    );
+    );*/
   }
   selectStartHand(player) {
     player.hand = player.popDeck(5);
@@ -244,7 +293,12 @@ class board extends Phaser.Scene {
 
       }
   }
-
+  getTablePosition(i,j) {
+    return {
+      x:this.centerX + (this.boardItemSizeX) * (i + 2) * this.boardScale,
+      y:this.centerY + (this.boardItemSizeY) * (j + 2) * this.boardScale
+    }; 
+  }
   resize (width, height)
   {
       if (width === undefined) { width = this.game.config.width; }

@@ -79,6 +79,8 @@ class CardBase extends Phaser.GameObjects.Container {
     );
 
     this.visible = false;
+    this.hasMoved = false;
+    this.movebles = [];
   }
   canSelect() {
     return true;
@@ -88,6 +90,44 @@ class CardBase extends Phaser.GameObjects.Container {
   }
   use() {
     
+  }
+  hide() {
+    this.visible = false;
+  }
+  drawSprite(player) {
+    let coords = player.board.getTablePosition(player.portal.x,player.portal.y);
+    this.tableSprite = this.parent.add.sprite(
+      coords.x,
+      coords.y,
+      cardSide[this.side],
+      this.type
+    );
+    this.posX = player.portal.x;
+    this.posY = player.portal.y;
+    this.tableSprite = player.doCardHandle(player,this);
+    this.tableSprite.alpha = 0.8
+    return this.tableSprite;
+  }
+  drawMoveRectangle(coords) {
+    let rectangle = this.parent.add.rectangle(
+      coords.x,
+      coords.y,
+      64,
+      64,
+      0x0000ff,
+      0.5
+    );
+    rectangle.setInteractive();
+    rectangle.on("pointerdown",() => this.moveCard(rectangle), this);
+    return rectangle;
+  }
+  moveCard(rectangle) {
+    this.tableSprite.x = rectangle.x;
+    this.tableSprite.y = rectangle.y;
+    for(let i=0;i<this.movebles.length;i++) {
+      this.movebles[i].destroy();
+    }
+    this.hasMoved = true;
   }
   showBack() {
     this.isShowingFace = false;
